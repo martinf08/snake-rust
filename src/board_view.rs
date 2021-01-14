@@ -1,9 +1,8 @@
 use crate::snake::Snake;
 use crate::board_controller::BoardController;
-use crate::food::Food;
 
 use piston_window::types::Color;
-use piston_window::{rectangle, Context, G2d, UpdateArgs, RenderArgs, clear, line};
+use piston_window::{rectangle, Context, G2d, RenderArgs, clear, line};
 
 pub struct BoardViewSettings {
     segment_size: f64,
@@ -59,7 +58,7 @@ impl BoardView {
         controller: &BoardController,
         context: &Context,
         graphics: &mut G2d,
-        args: &RenderArgs
+        _args: &RenderArgs
     ) {
         clear(self.board_settings.board_background_color, graphics);
 

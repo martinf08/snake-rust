@@ -4,7 +4,7 @@ use crate::food::Food;
 use piston_window::{GenericEvent, Button};
 
 pub struct BoardController {
-    pub(crate) board: Board
+    pub board: Board
 }
 
 impl BoardController {

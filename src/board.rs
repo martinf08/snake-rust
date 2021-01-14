@@ -1,9 +1,6 @@
 use crate::snake::Snake;
 use crate::food::Food;
 
-use piston_window::types::Color;
-use std::collections::LinkedList;
-
 pub struct Board {
     pub board_size: f64,
     pub segment_size: f64,
@@ -22,7 +19,7 @@ impl Board {
             segment_size,
             snake: Snake::new(4, 4),
             food: Food::new(),
-            move_delay: 0.2,
+            move_delay: 0.05,
             current_delta: 0.0,
             grid: Grid::new(&board_size, &segment_size)
         }
@@ -31,15 +28,15 @@ impl Board {
 
 #[derive(Debug, Clone)]
 pub struct Grid {
-    pub(crate) list: Vec<(i32, i32)>
+    pub list: Vec<(i32, i32)>
 }
 
 impl Grid {
     pub fn new(board_size: &f64, segment_size: &f64) -> Grid {
         let mut list= Vec::new();
 
-        for x in 1..=*board_size as i32 / *segment_size as i32 {
-            for y in 1..=*board_size as i32 / *segment_size as i32 {
+        for x in 1..=(*board_size as i32 / *segment_size as i32) - 1 {
+            for y in 1..=(*board_size as i32 / *segment_size as i32) - 1 {
                 list.push((x, y))
             }
         }

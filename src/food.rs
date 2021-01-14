@@ -1,7 +1,6 @@
 use crate::snake::{Snake, Segment};
 use crate::board::Grid;
 
-use rand::{thread_rng};
 use rand::seq::SliceRandom;
 use std::iter::FromIterator;
 

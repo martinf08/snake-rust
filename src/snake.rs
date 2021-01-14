@@ -24,17 +24,17 @@ impl Direction {
 
 #[derive(Debug, Copy, Clone)]
 pub struct Segment {
-    pub(crate) x: i32,
-    pub(crate) y: i32,
+    pub x: i32,
+    pub y: i32,
 }
 
 #[derive(Debug, Clone)]
 pub struct Snake {
-    pub(crate) body: LinkedList<Segment>,
+    pub body: LinkedList<Segment>,
     direction: Direction,
     request_direction: Direction,
-    pub(crate) just_eat: bool,
-    pub(crate) next_head: Option<Segment>
+    pub just_eat: bool,
+    pub next_head: Option<Segment>
 }
 
 impl Snake {
@@ -82,12 +82,12 @@ impl Snake {
 
     pub fn overlap_tail(&self, x: &i32, y: &i32) -> bool {
         if self.just_eat {
-            if let Segment { x: next_x, y: next_y } = self.get_next_segment()  {
-                let(head_x, head_y) = self.head_position();
-                if (head_x, head_y) == (next_x, next_y) {
-                    true;
-                }
+            let Segment { x: next_x, y: next_y } = self.get_next_segment();
+            let(head_x, head_y) = self.head_position();
+            if (head_x, head_y) == (next_x, next_y) {
+                true;
             }
+
         }
         for segment in &self.body {
             if (segment.x, segment.y) == (*x, *y) {
