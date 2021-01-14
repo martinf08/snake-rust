@@ -42,15 +42,13 @@ impl Food {
         None
     }
 
-    pub fn remove_snake_position(&self, mut grid: Grid, snake: Snake) -> Grid {
-        let mut virtual_snake = snake.clone();
-
-        virtual_snake.body.push_front(Segment {
-            x: virtual_snake.next_head.unwrap().x,
-            y: virtual_snake.next_head.unwrap().y
+    pub fn remove_snake_position(&self, mut grid: Grid, mut snake: Snake) -> Grid {
+        snake.body.push_front(Segment {
+            x: snake.next_head.unwrap().x,
+            y: snake.next_head.unwrap().y
         });
 
-        let mut body = virtual_snake.body.into_iter();
+        let mut body = snake.body.into_iter();
         while let Some(Segment { x: body_x, y: body_y }) = &body.next() {
             body.next();
 
