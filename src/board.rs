@@ -31,16 +31,16 @@ impl Board {
 
 #[derive(Debug, Clone)]
 pub struct Grid {
-    list: LinkedList<(i32, i32)>
+    pub(crate) list: Vec<(i32, i32)>
 }
 
 impl Grid {
     pub fn new(board_size: &f64, segment_size: &f64) -> Grid {
-        let mut list: LinkedList<(i32, i32)> = LinkedList::new();
+        let mut list= Vec::new();
 
         for x in 1..=*board_size as i32 / *segment_size as i32 {
             for y in 1..=*board_size as i32 / *segment_size as i32 {
-                list.push_back((x, y))
+                list.push((x, y))
             }
         }
 

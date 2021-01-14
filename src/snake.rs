@@ -3,7 +3,7 @@ use crate::food::Food;
 use std::collections::LinkedList;
 use piston_window::Key;
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Direction {
     Up,
     Down,
@@ -28,6 +28,7 @@ pub struct Segment {
     pub(crate) y: i32,
 }
 
+#[derive(Debug, Clone)]
 pub struct Snake {
     pub(crate) body: LinkedList<Segment>,
     direction: Direction,

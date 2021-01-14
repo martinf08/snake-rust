@@ -28,16 +28,15 @@ impl BoardController {
 
             self.board.current_delta = 0.0;
 
+            self.board.snake.next_head = Some(self.board.snake.get_next_segment());
+
             if let Some(food) = self.board.food.get_food(
                 &self.board.food,
-                &self.board.snake,
-                &self.board.board_size,
-                &self.board.segment_size
+                self.board.snake.clone(),
+                self.board.grid.clone()
             ) {
-                self.board.food = food
+                self.board.food = food;
             }
-
-            self.board.snake.next_head = Some(self.board.snake.get_next_segment());
 
             if self.board.snake.next_move_eat(
                 &self.board.snake.next_head,
