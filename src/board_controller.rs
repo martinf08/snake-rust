@@ -1,5 +1,4 @@
 use crate::board::Board;
-use crate::food::Food;
 
 use piston_window::{GenericEvent, Button};
 
@@ -20,6 +19,10 @@ impl BoardController {
         }
 
         if let Some(args) = e.update_args() {
+            if self.board.snake.is_dead(&self.board.board_size, &self.board.segment_size) {
+                self.board = Board::new(self.board.board_size, self.board.segment_size)
+            }
+
             self.board.current_delta += args.dt;
 
             if self.board.move_delay > self.board.current_delta {
@@ -33,7 +36,7 @@ impl BoardController {
             if let Some(food) = self.board.food.get_food(
                 &self.board.food,
                 self.board.snake.clone(),
-                self.board.grid.clone()
+                self.board.grid.clone(),
             ) {
                 self.board.food = food;
             }

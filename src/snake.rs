@@ -81,18 +81,14 @@ impl Snake {
     }
 
     pub fn overlap_tail(&self, x: &i32, y: &i32) -> bool {
-        if self.just_eat {
-            let Segment { x: next_x, y: next_y } = self.get_next_segment();
-            let(head_x, head_y) = self.head_position();
-            if (head_x, head_y) == (next_x, next_y) {
-                true;
-            }
-
-        }
+        let mut index = 0;
         for segment in &self.body {
-            if (segment.x, segment.y) == (*x, *y) {
-                true;
+            if index > 0 {
+                if (segment.x, segment.y) == (*x, *y) {
+                    return true;
+                }
             }
+            index += 1;
         }
         false
     }
@@ -115,5 +111,16 @@ impl Snake {
     pub fn next_move_eat(&self, next_segment: &Option<Segment>, food: &Food) -> bool {
         let next_segment = next_segment.unwrap();
         return (next_segment.x, next_segment.y) == (food.x, food.y);
+    }
+
+    pub fn is_dead(&self, board_size: &f64, segment_size: &f64) -> bool {
+        let (x, y) = self.head_position();
+        let max_distance = *board_size as i32 / *segment_size as i32 - 1;
+
+        if self.overlap_tail(&x, &y) || x < 0 || x > max_distance || y < 0 || y > max_distance {
+            return true;
+        }
+
+        return false
     }
 }
