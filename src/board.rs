@@ -1,6 +1,7 @@
 use crate::snake::Snake;
 use crate::food::Food;
 
+
 pub struct Board {
     pub board_size: f64,
     pub segment_size: f64,
@@ -26,7 +27,7 @@ impl Board {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Grid {
     pub list: Vec<(i32, i32)>
 }

@@ -4,6 +4,7 @@ use crate::board_controller::BoardController;
 use piston_window::types::Color;
 use piston_window::{rectangle, Context, G2d, RenderArgs, clear, line};
 
+
 pub struct BoardViewSettings {
     segment_size: f64,
     snake_color: Color,

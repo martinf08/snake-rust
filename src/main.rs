@@ -10,11 +10,12 @@ use crate::board_view::BoardView;
 
 use piston_window::*;
 
+
 fn main() {
     const BOARD_SIZE: f64 = 800.0;
     const SEGMENT_SIZE: f64 = 20.0;
 
-    let mut window: PistonWindow = WindowSettings::new("snake-astar", [BOARD_SIZE, BOARD_SIZE])
+    let mut window: PistonWindow = WindowSettings::new("snake", [BOARD_SIZE, BOARD_SIZE])
         .exit_on_esc(true)
         .resizable(false)
         .build()

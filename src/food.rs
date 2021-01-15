@@ -5,7 +5,6 @@ use rand::seq::SliceRandom;
 use std::iter::FromIterator;
 
 
-#[derive(Debug)]
 pub struct Food {
     pub x: i32,
     pub y: i32,
@@ -41,20 +40,14 @@ impl Food {
         None
     }
 
-    pub fn remove_snake_position(&self, mut grid: Grid, mut snake: Snake) -> Grid {
-        snake.body.push_front(Segment {
-            x: snake.next_head.unwrap().x,
-            y: snake.next_head.unwrap().y
-        });
-
+    pub fn remove_snake_position(&self, mut grid: Grid, snake: Snake) -> Grid {
         let mut body = snake.body.into_iter();
         while let Some(Segment { x: body_x, y: body_y }) = &body.next() {
-            body.next();
 
             grid.list = Vec::from_iter(grid.list.into_iter()
                 .filter(|(x, y)| (*x, *y) != (*body_x, *body_y)));
-        }
 
+        }
         grid
     }
 
