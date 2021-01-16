@@ -108,7 +108,7 @@ impl BoardView {
         }
     }
 
-    pub fn draw_block(&self, color: Color, x: i32, y: i32, context: &Context, graphic: &mut G2d) {
+    pub fn draw_block(&self, color: Color, x: i32, y: i32, context: &Context, graphics: &mut G2d) {
         let gui_x = x as f64 * self.board_settings.segment_size;
         let gui_y = y as f64 * self.board_settings.segment_size;
 
@@ -116,7 +116,7 @@ impl BoardView {
             color,
             [gui_x, gui_y, self.board_settings.segment_size, self.board_settings.segment_size],
             context.transform,
-            graphic,
+            graphics,
         );
     }
 }

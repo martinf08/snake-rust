@@ -112,9 +112,10 @@ impl Snake {
         self.body.pop_back().unwrap();
     }
 
-    pub fn next_move_eat(&self, next_segment: &Option<Segment>, food: &Food) -> bool {
-        let next_segment = next_segment.unwrap();
-        return (next_segment.x, next_segment.y) == (food.x, food.y);
+    pub fn next_move_eat(&self, food: &Food) -> bool {
+        let Segment { x, y} = self.next_head.unwrap();
+
+        return (x, y) == (food.x, food.y);
     }
 
     pub fn is_dead(&self, board_size: &f64, segment_size: &f64) -> bool {

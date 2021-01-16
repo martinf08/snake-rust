@@ -1,9 +1,9 @@
 use crate::board::Board;
+use crate::food::Food;
 
 use piston_window::{GenericEvent, Button};
 use crossbeam_utils::thread;
 use std::sync::{Arc, Mutex};
-use crate::food::Food;
 
 
 pub struct BoardController {
@@ -35,10 +35,7 @@ impl BoardController {
 
             self.board.snake.next_head = Some(self.board.snake.get_next_segment());
 
-            if self.board.snake.next_move_eat(
-                &self.board.snake.next_head,
-                &self.board.food,
-            ) {
+            if self.board.snake.next_move_eat(&self.board.food) {
                 self.board.food = self.get_next_food().unwrap();
                 self.board.next_food = None;
                 self.board.snake.just_eat = true;

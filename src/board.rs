@@ -14,7 +14,6 @@ pub struct Board {
     pub move_delay: f64,
     pub current_delta: f64,
     pub grid: Grid,
-
 }
 
 impl Board {
@@ -52,6 +51,7 @@ impl Grid {
 
     pub fn remove_snake_position(mut self, snake: Snake) -> Grid {
         let mut body = snake.body.into_iter();
+
         while let Some(Segment { x: body_x, y: body_y }) = &body.next() {
 
             self.list = Vec::from_iter(self.list.into_iter()
