@@ -1,5 +1,8 @@
-use crate::snake::Snake;
+use crate::snake::{Snake, Segment};
 use crate::food::Food;
+
+use std::iter::FromIterator;
+use rand::seq::SliceRandom;
 
 
 pub struct Board {
@@ -45,5 +48,20 @@ impl Grid {
         }
 
         Grid { list }
+    }
+
+    pub fn remove_snake_position(mut self, snake: Snake) -> Grid {
+        let mut body = snake.body.into_iter();
+        while let Some(Segment { x: body_x, y: body_y }) = &body.next() {
+
+            self.list = Vec::from_iter(self.list.into_iter()
+                .filter(|(x, y)| (*x, *y) != (*body_x, *body_y)));
+        }
+
+        self
+    }
+
+    pub fn get_random_position(&self) -> (i32, i32) {
+        return *self.list.choose(&mut rand::thread_rng()).unwrap()
     }
 }

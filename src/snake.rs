@@ -86,11 +86,13 @@ impl Snake {
         for segment in &self.body {
             if index > 0 {
                 if (segment.x, segment.y) == (*x, *y) {
+
                     return true;
                 }
             }
             index += 1;
         }
+
         false
     }
 
@@ -103,6 +105,7 @@ impl Snake {
 
         if self.just_eat {
             self.just_eat = false;
+
             return;
         }
 
@@ -119,6 +122,7 @@ impl Snake {
         let max_distance = *board_size as i32 / *segment_size as i32 - 1;
 
         if self.overlap_tail(&x, &y) || x < 0 || x > max_distance || y < 0 || y > max_distance {
+
             return true;
         }
 

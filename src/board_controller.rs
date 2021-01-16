@@ -12,9 +12,7 @@ pub struct BoardController {
 
 impl BoardController {
     pub fn new(board: Board) -> BoardController {
-        BoardController {
-            board
-        }
+        BoardController { board }
     }
 
     pub fn event<E: GenericEvent>(&mut self, e: &E) {
