@@ -1,6 +1,8 @@
 use crate::board::Board;
 
 use piston_window::{GenericEvent, Button};
+use crossbeam_utils::thread;
+use std::sync::{Arc, Mutex};
 
 
 pub struct BoardController {
@@ -24,6 +26,23 @@ impl BoardController {
                 self.board = Board::new(self.board.board_size, self.board.segment_size)
             }
 
+            let shared_self = Arc::new(&self);
+            let new_food = Arc::new(Mutex::new(None));
+            let new_food_clone = new_food.clone();
+
+            thread::scope(|s| {
+                    s.spawn(move |_| {
+                        if let Some(food) = shared_self.board.food.get_food(
+                            shared_self.board.snake.clone(),
+                            shared_self.board.grid.clone(),
+                        ) {
+                            *new_food_clone.lock().unwrap() = Some(food);
+                        }
+                    });
+            }).unwrap();
+
+            self.board.next_food = *new_food.lock().unwrap();
+
             self.board.current_delta += args.dt;
 
             if self.board.move_delay > self.board.current_delta {
@@ -34,19 +53,12 @@ impl BoardController {
 
             self.board.snake.next_head = Some(self.board.snake.get_next_segment());
 
-            if let Some(food) = self.board.food.get_food(
-                &self.board.food,
-                self.board.snake.clone(),
-                self.board.grid.clone(),
-            ) {
-                self.board.food = food;
-            }
-
             if self.board.snake.next_move_eat(
                 &self.board.snake.next_head,
                 &self.board.food,
             ) {
-                self.board.food.exists = false;
+                self.board.food = self.board.next_food.unwrap();
+                self.board.next_food = None;
                 self.board.snake.just_eat = true;
             }
 
