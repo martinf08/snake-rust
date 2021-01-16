@@ -9,3 +9,4 @@ authors = ["martin.fontana@spacefoot.com"]
 [dependencies]
 piston_window = "0.116.0"
 rand = "0.8.2"
+crossbeam-utils = "0.8.1"
