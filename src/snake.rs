@@ -4,7 +4,7 @@ use std::collections::LinkedList;
 use piston_window::Key;
 
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(PartialEq, Copy, Clone)]
 pub enum Direction {
     Up,
     Down,
@@ -23,13 +23,13 @@ impl Direction {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Copy, Clone)]
 pub struct Segment {
     pub x: i32,
     pub y: i32,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Snake {
     pub body: LinkedList<Segment>,
     direction: Direction,

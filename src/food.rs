@@ -25,13 +25,12 @@ impl Food {
     ) -> Option<Food> {
 
         let grid = self.remove_snake_position(grid, snake);
-        let (new_x, new_y) = self.get_food_position(grid);
+        let (new_x, new_y) = self.get_random_position(grid);
 
         return Some(Food {
             x: new_x,
             y: new_y,
         });
-        None
     }
 
     pub fn remove_snake_position(&self, mut grid: Grid, snake: Snake) -> Grid {
@@ -44,7 +43,7 @@ impl Food {
         grid
     }
 
-    pub fn get_food_position(&self, grid: Grid) -> (i32, i32) {
+    pub fn get_random_position(&self, grid: Grid) -> (i32, i32) {
         return *grid.list.choose(&mut rand::thread_rng()).unwrap()
     }
 }
