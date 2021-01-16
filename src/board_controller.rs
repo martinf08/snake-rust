@@ -55,6 +55,7 @@ impl BoardController {
                 *new_food_clone.lock().unwrap() = shared_self.board.food.get_food(
                     shared_self.board.snake.clone(),
                     shared_self.board.grid.clone(),
+                    &shared_self.board.food
                 );
             });
         }).unwrap();

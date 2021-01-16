@@ -49,7 +49,7 @@ impl Grid {
         Grid { list }
     }
 
-    pub fn remove_snake_position(mut self, snake: Snake) -> Grid {
+    pub fn remove_occupied_positions(mut self, snake: Snake, food: &Food) -> Grid {
         let mut body = snake.body.into_iter();
 
         while let Some(Segment { x: body_x, y: body_y }) = &body.next() {
@@ -58,6 +58,9 @@ impl Grid {
                 .filter(|(x, y)| (*x, *y) != (*body_x, *body_y)));
         }
 
+        self.list = Vec::from_iter(self.list.into_iter()
+            .filter(|(x, y)| (*x, *y) != (food.x, food.y)));
+        
         self
     }
 

@@ -122,11 +122,6 @@ impl Snake {
         let (x, y) = self.head_position();
         let max_distance = *board_size as i32 / *segment_size as i32 - 1;
 
-        if self.overlap_tail(&x, &y) || x < 0 || x > max_distance || y < 0 || y > max_distance {
-
-            return true;
-        }
-
-        return false
+        self.overlap_tail(&x, &y) || x < 0 || x > max_distance || y < 0 || y > max_distance
     }
 }
