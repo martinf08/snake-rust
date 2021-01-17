@@ -21,8 +21,12 @@ impl BoardController {
         }
 
         if let Some(args) = e.update_args() {
-            if self.board.snake.is_dead(&self.board.board_size, &self.board.segment_size) {
-                self.board = Board::new(self.board.board_size, self.board.segment_size)
+            if self.board.snake.is_dead(&self.board.board_size, &self.board.block_size) {
+                self.board = Board::new(
+                    self.board.board_size,
+                    self.board.block_size,
+                    self.board.move_delay
+                )
             }
 
             self.board.current_delta += args.dt;

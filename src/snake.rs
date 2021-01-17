@@ -113,14 +113,14 @@ impl Snake {
     }
 
     pub fn next_move_eat(&self, food: &Food) -> bool {
-        let Segment { x, y} = self.next_head.unwrap();
+        let Segment { x, y } = self.next_head.unwrap();
 
         return (x, y) == (food.x, food.y);
     }
 
-    pub fn is_dead(&self, board_size: &f64, segment_size: &f64) -> bool {
+    pub fn is_dead(&self, board_size: &f64, block_size: &f64) -> bool {
         let (x, y) = self.head_position();
-        let max_distance = *board_size as i32 / *segment_size as i32 - 1;
+        let max_distance = *board_size as i32 / *block_size as i32 - 1;
 
         self.overlap_tail(&x, &y) || x < 0 || x > max_distance || y < 0 || y > max_distance
     }

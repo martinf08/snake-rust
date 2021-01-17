@@ -13,7 +13,8 @@ use piston_window::*;
 
 fn main() {
     const BOARD_SIZE: f64 = 800.0;
-    const SEGMENT_SIZE: f64 = 20.0;
+    const BLOCK_SIZE: f64 = 20.0;
+    const MOVE_DELAY: f64 = 0.05;
 
     let mut window: PistonWindow = WindowSettings::new("snake", [BOARD_SIZE, BOARD_SIZE])
         .exit_on_esc(true)
@@ -21,10 +22,15 @@ fn main() {
         .build()
         .unwrap();
 
-    let board = Board::new(BOARD_SIZE.clone(), SEGMENT_SIZE.clone());
+    let board = Board::new(
+        BOARD_SIZE.clone(),
+        BLOCK_SIZE.clone(),
+        MOVE_DELAY.clone(),
+    );
+
     let mut board_controller = BoardController::new(board);
 
-    let board_view = BoardView::new(BOARD_SIZE.clone(), SEGMENT_SIZE.clone());
+    let board_view = BoardView::new(BOARD_SIZE.clone(), BLOCK_SIZE.clone());
 
     while let Some(event) = &window.next() {
         board_controller.event(event);

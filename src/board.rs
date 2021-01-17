@@ -7,7 +7,7 @@ use rand::seq::SliceRandom;
 
 pub struct Board {
     pub board_size: f64,
-    pub segment_size: f64,
+    pub block_size: f64,
     pub snake: Snake,
     pub food: Food,
     pub next_food: Option<Food>,
@@ -17,16 +17,16 @@ pub struct Board {
 }
 
 impl Board {
-    pub fn new(board_size: f64, segment_size: f64) -> Board {
+    pub fn new(board_size: f64, block_size: f64, move_delay: f64) -> Board {
         Board {
             board_size,
-            segment_size,
+            block_size,
             snake: Snake::new(4, 4),
             food: Food::new(),
             next_food: None,
-            move_delay: 0.05,
+            move_delay,
             current_delta: 0.0,
-            grid: Grid::new(&board_size, &segment_size),
+            grid: Grid::new(&board_size, &block_size),
         }
     }
 }
@@ -37,11 +37,11 @@ pub struct Grid {
 }
 
 impl Grid {
-    pub fn new(board_size: &f64, segment_size: &f64) -> Grid {
-        let mut list= Vec::new();
+    pub fn new(board_size: &f64, block_size: &f64) -> Grid {
+        let mut list = Vec::new();
 
-        for x in 1..=(*board_size as i32 / *segment_size as i32) - 1 {
-            for y in 1..=(*board_size as i32 / *segment_size as i32) - 1 {
+        for x in 1..=(*board_size as i32 / *block_size as i32) - 1 {
+            for y in 1..=(*board_size as i32 / *block_size as i32) - 1 {
                 list.push((x, y))
             }
         }
