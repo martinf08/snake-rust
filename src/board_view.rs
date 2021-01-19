@@ -103,8 +103,8 @@ impl BoardView {
     }
 
     fn draw_snake(&self, snake: &Snake, context: &Context, graphics: &mut G2d) {
-        for segment in &snake.body {
-            self.draw_block(self.board_settings.snake_color, segment.x, segment.y, &context, graphics)
+        for point in &snake.body {
+            self.draw_block(self.board_settings.snake_color, point.x, point.y, &context, graphics)
         }
     }
 

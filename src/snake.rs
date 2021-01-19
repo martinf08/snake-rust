@@ -24,26 +24,26 @@ impl Direction {
 }
 
 #[derive(Copy, Clone)]
-pub struct Segment {
+pub struct Point {
     pub x: i32,
     pub y: i32,
 }
 
 #[derive(Clone)]
 pub struct Snake {
-    pub body: LinkedList<Segment>,
+    pub body: LinkedList<Point>,
     direction: Direction,
     request_direction: Direction,
     pub just_eat: bool,
-    pub next_head: Option<Segment>
+    pub next_head: Option<Point>
 }
 
 impl Snake {
     pub fn new(x: i32, y: i32) -> Snake {
-        let mut body: LinkedList<Segment> = LinkedList::new();
+        let mut body: LinkedList<Point> = LinkedList::new();
 
         for i in 0..3 {
-            body.push_back(Segment { x: x - i, y });
+            body.push_back(Point { x: x - i, y });
         }
 
         Snake {
@@ -60,14 +60,14 @@ impl Snake {
         (head.x, head.y)
     }
 
-    pub fn get_next_segment(&self) -> Segment {
+    pub fn get_next_point(&self) -> Point {
         let (head_x, head_y) = self.head_position();
 
         match self.direction {
-            Direction::Up => Segment { x: head_x, y: head_y - 1 },
-            Direction::Down => Segment { x: head_x, y: head_y + 1 },
-            Direction::Left => Segment { x: head_x - 1, y: head_y },
-            Direction::Right => Segment { x: head_x + 1, y: head_y },
+            Direction::Up => Point { x: head_x, y: head_y - 1 },
+            Direction::Down => Point { x: head_x, y: head_y + 1 },
+            Direction::Left => Point { x: head_x - 1, y: head_y },
+            Direction::Right => Point { x: head_x + 1, y: head_y },
         }
     }
 
@@ -83,9 +83,9 @@ impl Snake {
 
     pub fn overlap_tail(&self, x: &i32, y: &i32) -> bool {
         let mut index = 0;
-        for segment in &self.body {
+        for point in &self.body {
             if index > 0 {
-                if (segment.x, segment.y) == (*x, *y) {
+                if (point.x, point.y) == (*x, *y) {
 
                     return true;
                 }
@@ -113,7 +113,7 @@ impl Snake {
     }
 
     pub fn next_move_eat(&self, food: &Food) -> bool {
-        let Segment { x, y } = self.next_head.unwrap();
+        let Point { x, y } = self.next_head.unwrap();
 
         return (x, y) == (food.x, food.y);
     }

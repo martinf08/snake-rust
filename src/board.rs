@@ -1,4 +1,4 @@
-use crate::snake::{Snake, Segment};
+use crate::snake::{Snake, Point};
 use crate::food::Food;
 
 use std::iter::FromIterator;
@@ -52,7 +52,7 @@ impl Grid {
     pub fn remove_occupied_positions(mut self, snake: Snake, food: &Food) -> Grid {
         let mut body = snake.body.into_iter();
 
-        while let Some(Segment { x: body_x, y: body_y }) = &body.next() {
+        while let Some(Point { x: body_x, y: body_y }) = &body.next() {
 
             self.list = Vec::from_iter(self.list.into_iter()
                 .filter(|(x, y)| (*x, *y) != (*body_x, *body_y)));

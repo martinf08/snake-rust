@@ -37,7 +37,7 @@ impl BoardController {
 
             self.board.current_delta = 0.0;
 
-            self.board.snake.next_head = Some(self.board.snake.get_next_segment());
+            self.board.snake.next_head = Some(self.board.snake.get_next_point());
 
             if self.board.snake.next_move_eat(&self.board.food) {
                 self.board.food = self.get_next_food().unwrap();
