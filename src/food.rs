@@ -1,5 +1,7 @@
-use crate::snake::Snake;
+use crate::snake::{Point};
 use crate::board::Grid;
+
+use std::collections::LinkedList;
 
 
 #[derive(Copy, Clone)]
@@ -18,12 +20,12 @@ impl Food {
 
     pub fn get_food(
         &self,
-        snake: Snake,
+        body: LinkedList<Point>,
         grid: Grid,
         food: &Food
     ) -> Option<Food> {
 
-        let grid = grid.remove_occupied_positions(snake, food);
+        let grid = grid.remove_occupied_positions(body, food);
         let (new_x, new_y) = grid.get_random_position();
 
         return Some(Food {

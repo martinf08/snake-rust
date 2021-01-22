@@ -1,32 +1,33 @@
 use crate::snake::{Snake, Point};
 use crate::food::Food;
 
-use std::iter::FromIterator;
 use rand::seq::SliceRandom;
-
+use std::iter::FromIterator;
+use std::sync::Arc;
+use std::collections::LinkedList;
 
 pub struct Board {
-    pub board_size: f64,
-    pub block_size: f64,
+    pub board_size: Arc<f64>,
+    pub block_size: Arc<f64>,
     pub snake: Snake,
     pub food: Food,
     pub next_food: Option<Food>,
-    pub move_delay: f64,
+    pub move_delay: Arc<f64>,
     pub current_delta: f64,
     pub grid: Grid,
 }
 
 impl Board {
-    pub fn new(board_size: f64, block_size: f64, move_delay: f64) -> Board {
+    pub fn new(board_size: Arc<f64>, block_size: Arc<f64>, move_delay: Arc<f64>) -> Board {
         Board {
-            board_size,
-            block_size,
+            board_size: board_size.clone(),
+            block_size: block_size.clone(),
             snake: Snake::new(4, 4),
             food: Food::new(),
             next_food: None,
             move_delay,
             current_delta: 0.0,
-            grid: Grid::new(&board_size, &block_size),
+            grid: Grid::new(&board_size.clone(), &block_size.clone()),
         }
     }
 }
@@ -49,8 +50,8 @@ impl Grid {
         Grid { list }
     }
 
-    pub fn remove_occupied_positions(mut self, snake: Snake, food: &Food) -> Grid {
-        let mut body = snake.body.into_iter();
+    pub fn remove_occupied_positions(mut self, body: LinkedList<Point>, food: &Food) -> Grid {
+        let mut body = body.into_iter();
 
         while let Some(Point { x: body_x, y: body_y }) = &body.next() {
 
