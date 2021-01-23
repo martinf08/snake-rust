@@ -39,13 +39,14 @@ pub struct Snake {
     pub just_eat: bool,
     pub next_head: Option<Point>,
     pub frame_handler: FrameHandler,
+    blocks_to_add: u32
 }
 
 impl Snake {
     pub fn new(x: f64, y: f64, frame_handler: FrameHandler) -> Snake {
         let mut body: LinkedList<Point> = LinkedList::new();
 
-        for f in FloatIterator::new_with_step(0.0, 3.0, frame_handler.get_move_distance()) {
+        for f in FloatIterator::new_with_step(0.0, 2.0, frame_handler.get_move_distance()) {
             body.push_back(Point { x: x - f, y });
         }
 
@@ -57,6 +58,7 @@ impl Snake {
             just_eat: false,
             next_head: None,
             frame_handler,
+            blocks_to_add: 0
         }
     }
 
@@ -134,12 +136,18 @@ impl Snake {
         }
 
         if self.just_eat {
+            self.blocks_to_add += (1.0 / self.frame_handler.get_move_distance()).ceil() as u32;
             self.just_eat = false;
 
-            return;
         }
 
-        self.body.pop_back().unwrap();
+        if self.blocks_to_add > 0 {
+            self.blocks_to_add -= 1;
+
+            return;
+        } else if self.blocks_to_add == 0 {
+            self.body.pop_back().unwrap();
+        }
     }
 
     pub fn next_move_eat(&self, food: &Food) -> bool {
