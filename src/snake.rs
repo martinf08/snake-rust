@@ -35,6 +35,7 @@ pub struct Snake {
     pub body: LinkedList<Point>,
     direction: Direction,
     request_direction: Direction,
+    request_position: Option<(f64, f64)>,
     pub just_eat: bool,
     pub next_head: Option<Point>,
     pub frame_handler: FrameHandler,
@@ -52,6 +53,7 @@ impl Snake {
             body,
             direction: Direction::Right,
             request_direction: Direction::Right,
+            request_position: None,
             just_eat: false,
             next_head: None,
             frame_handler,
@@ -100,23 +102,36 @@ impl Snake {
         false
     }
 
-    pub fn update(&mut self, frame_update: bool, delta_time: f64) {
-
+    pub fn update(&mut self, delta_time: f64) {
         self.frame_handler.current_delta += delta_time;
 
         if self.frame_handler.current_delta < (1.0 / &*self.frame_handler.fps) {
-
-           return;
+            return;
         }
 
         self.frame_handler.current_delta = 0.0;
-        if !frame_update {
-            if self.direction.opposite() != self.request_direction {
-                self.direction = self.request_direction;
+
+        let mut need_new_head = true;
+
+        if self.direction.opposite() != self.request_direction {
+            if let Some((past_head_x, past_head_y)) = self.request_position {
+                let (head_x, head_y) = self.head_position();
+                if head_x.round() != past_head_x.round() || head_y.round() != past_head_y.round() {
+                    self.body.push_front(Point { x: head_x.round(), y: head_y.round() });
+                    need_new_head = false;
+                    self.direction = self.request_direction;
+                    self.request_position = None;
+                }
             }
         }
 
-        self.body.push_front(self.next_head.unwrap().clone());
+        if self.direction.opposite() != self.request_direction {
+            self.request_position = Some(self.head_position());
+        }
+
+        if need_new_head {
+            self.body.push_front(self.next_head.unwrap().clone());
+        }
 
         if self.just_eat {
             self.just_eat = false;
@@ -130,7 +145,7 @@ impl Snake {
     pub fn next_move_eat(&self, food: &Food) -> bool {
         let Point { x, y } = self.next_head.unwrap();
 
-        return (x, y) == (food.x as f64, food.y as f64);
+        return (x.round(), y.round()) == (food.x as f64, food.y as f64);
     }
 
     pub fn is_dead(&self, board_size: &f64, block_size: &f64) -> bool {
@@ -146,7 +161,7 @@ pub struct FrameHandler {
     pub(crate) fps: Arc<f64>,
     pub(crate) move_delay: Arc<f64>,
     block_size: Arc<f64>,
-    current_delta: f64
+    current_delta: f64,
 }
 
 impl FrameHandler {
@@ -155,7 +170,7 @@ impl FrameHandler {
             fps,
             move_delay,
             block_size,
-            current_delta: 0.0
+            current_delta: 0.0,
         }
     }
 
@@ -173,7 +188,7 @@ pub struct FloatIterator {
 }
 
 impl FloatIterator {
-    pub fn new(start: f64, end: f64, steps: u64) -> Self {
+    pub fn new(start: f64, end: f64, steps: u64) -> FloatIterator {
         FloatIterator {
             current: 0,
             current_back: steps,
@@ -185,12 +200,12 @@ impl FloatIterator {
 
     pub fn new_with_step(start: f64, end: f64, step: f64) -> FloatIterator {
         let steps = ((end - start) / step).abs().round() as u64;
-        Self::new(start, end, steps)
+        FloatIterator::new(start, end, steps)
     }
 
     fn at(&self, pos: u64) -> f64 {
         let f_pos = pos as f64 / self.steps as f64;
-        (1. - f_pos) * self.start + f_pos * self.end
+        (1.0 - f_pos) * self.start + f_pos * self.end
     }
 }
 
@@ -205,5 +220,4 @@ impl Iterator for FloatIterator {
         self.current += 1;
         Some(result)
     }
-
 }

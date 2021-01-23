@@ -30,12 +30,10 @@ impl BoardController {
                 )
             }
 
-            let mut frame_update = true;
             self.board.current_delta += args.dt;
 
             if *self.board.move_delay <= self.board.current_delta {
                 self.board.current_delta = 0.0;
-                frame_update = false;
             }
 
             self.board.snake.next_head = Some(self.board.snake.get_next_point());
@@ -46,7 +44,7 @@ impl BoardController {
                 self.board.snake.just_eat = true;
             }
 
-            self.board.snake.update(frame_update, args.dt);
+            self.board.snake.update(args.dt);
         }
     }
 
