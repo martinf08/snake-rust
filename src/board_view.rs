@@ -109,7 +109,7 @@ impl BoardView {
         }
     }
 
-    pub fn draw_block(&self, color: Color, x: i32, y: i32, context: &Context, graphics: &mut G2d) {
+    pub fn draw_block(&self, color: Color, x: f64, y: f64, context: &Context, graphics: &mut G2d) {
         let gui_x = x as f64 * *self.board_settings.block_size;
         let gui_y = y as f64 * *self.board_settings.block_size;
 

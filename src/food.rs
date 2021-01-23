@@ -6,15 +6,15 @@ use std::collections::LinkedList;
 
 #[derive(Copy, Clone)]
 pub struct Food {
-    pub x: i32,
-    pub y: i32,
+    pub x: f64,
+    pub y: f64,
 }
 
 impl Food {
     pub fn new() -> Food {
         Food {
-            x: 15,
-            y: 15,
+            x: 15.0,
+            y: 15.0,
         }
     }
 

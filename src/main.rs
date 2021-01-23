@@ -13,9 +13,10 @@ use std::sync::Arc;
 
 
 fn main() {
-    let board_size: Arc<f64> = Arc::new(400.0);
-    let block_size: Arc<f64> = Arc::new(20.0);
-    let move_delay: Arc<f64> = Arc::new(0.1);
+    let board_size = Arc::new(400.0);
+    let block_size = Arc::new(20.0);
+    let move_delay = Arc::new(0.15); //1 = board in one sec
+    let fps: Arc<f64> = Arc::new(60.0);
 
     let mut window: PistonWindow = WindowSettings::new(
         "snake",
@@ -26,6 +27,7 @@ fn main() {
         Arc::clone(&board_size),
         Arc::clone(&block_size),
         Arc::clone(&move_delay),
+        Arc::clone(&fps),
     );
 
     let mut board_controller = BoardController::new(board);
