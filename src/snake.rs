@@ -172,8 +172,14 @@ impl Snake {
     }
 
     fn at_ceil_edge(&self, (head_x, head_y): (&f64, &f64)) -> bool {
-        ((head_x.ceil() - head_x).abs() <= 0.1 && (head_x.ceil() - head_x).abs() != 0.0)
-            || ((head_y.ceil() - head_y).abs() <= 0.1 && (head_y.ceil() - head_y).abs() != 0.0)
+        match self.direction {
+            Direction::Up =>  (head_y - self.frame_handler.get_move_distance()).trunc() != head_y.trunc()
+                || (head_y > &0.0 && head_y <= &self.frame_handler.get_move_distance()),
+            Direction::Down => (head_y + self.frame_handler.get_move_distance()).trunc() != head_y.trunc(),
+            Direction::Left => (head_x - self.frame_handler.get_move_distance()).trunc() != head_x.trunc()
+                || (head_x > &0.0 && head_x <= &self.frame_handler.get_move_distance()),
+            Direction::Right => (head_x + self.frame_handler.get_move_distance()).trunc() != head_x.trunc(),
+        }
     }
 }
 
