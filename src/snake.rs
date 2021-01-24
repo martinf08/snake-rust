@@ -173,7 +173,7 @@ impl Snake {
 
     fn at_ceil_edge(&self, (head_x, head_y): (&f64, &f64)) -> bool {
         match self.direction {
-            Direction::Up =>  (head_y - self.frame_handler.get_move_distance()).trunc() != head_y.trunc()
+            Direction::Up => (head_y - self.frame_handler.get_move_distance()).trunc() != head_y.trunc()
                 || (head_y > &0.0 && head_y <= &self.frame_handler.get_move_distance()),
             Direction::Down => (head_y + self.frame_handler.get_move_distance()).trunc() != head_y.trunc(),
             Direction::Left => (head_x - self.frame_handler.get_move_distance()).trunc() != head_x.trunc()
