@@ -15,7 +15,7 @@ use std::sync::Arc;
 fn main() {
     let board_size = Arc::new(400.0);
     let block_size = Arc::new(20.0);
-    let move_delay = Arc::new(0.1); //1 = board in one sec
+    let move_delay = Arc::new(0.13); //1 = board in one sec
     let fps: Arc<f64> = Arc::new(60.0);
 
     let mut window: PistonWindow = WindowSettings::new(

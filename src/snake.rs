@@ -39,7 +39,8 @@ pub struct Snake {
     pub just_eat: bool,
     pub next_head: Option<Point>,
     pub frame_handler: FrameHandler,
-    blocks_to_add: u32
+    blocks_to_add: u32,
+    middle_block_passed: bool,
 }
 
 impl Snake {
@@ -58,7 +59,8 @@ impl Snake {
             just_eat: false,
             next_head: None,
             frame_handler,
-            blocks_to_add: 0
+            blocks_to_add: 0,
+            middle_block_passed: false,
         }
     }
 
@@ -118,11 +120,18 @@ impl Snake {
         if self.direction.opposite() != self.request_direction {
             if let Some((past_head_x, past_head_y)) = self.request_position {
                 let (head_x, head_y) = self.head_position();
+
                 if head_x.round() != past_head_x.round() || head_y.round() != past_head_y.round() {
-                    self.body.push_front(Point { x: head_x.round(), y: head_y.round() });
+                    self.middle_block_passed = true
+                }
+
+                if self.at_ceil_edge((&head_x, &head_y)) && self.middle_block_passed {
+                    self.middle_block_passed = false;
                     need_new_head = false;
-                    self.direction = self.request_direction;
                     self.request_position = None;
+
+                    self.body.push_front(Point { x: head_x.round(), y: head_y.round() });
+                    self.direction = self.request_direction;
                 }
             }
         }
@@ -138,7 +147,6 @@ impl Snake {
         if self.just_eat {
             self.blocks_to_add += (1.0 / self.frame_handler.get_move_distance()).ceil() as u32;
             self.just_eat = false;
-
         }
 
         if self.blocks_to_add > 0 {
@@ -161,6 +169,11 @@ impl Snake {
         let max_distance = *board_size as f64 / *block_size as f64 - 1.0;
 
         self.overlap_tail(&x, &y) || x < 0.0 || x > max_distance || y < 0.0 || y > max_distance
+    }
+
+    fn at_ceil_edge(&self, (head_x, head_y): (&f64, &f64)) -> bool {
+        ((head_x.ceil() - head_x).abs() <= 0.1 && (head_x.ceil() - head_x).abs() != 0.0)
+            || ((head_y.ceil() - head_y).abs() <= 0.1 && (head_y.ceil() - head_y).abs() != 0.0)
     }
 }
 
