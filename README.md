@@ -1,3 +1,5 @@
 # snake-rust
 
-<code>./bin/snake-rust</code>
+
+
+Take the executable file in the bin folder or build the project with cargo
