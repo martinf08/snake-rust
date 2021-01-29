@@ -16,11 +16,12 @@ fn main() {
     let board_size = Arc::new(400.0);
     let block_size = Arc::new(20.0);
     let move_delay = Arc::new(0.14); //1 = board in one sec
+    let score_size = Arc::new(150.0);
     let fps = Arc::new(60.0);
 
     let mut window: PistonWindow = WindowSettings::new(
         "snake",
-        [*Arc::clone(&board_size), *Arc::clone(&board_size)],
+        [ *Arc::clone(&Arc::new(*board_size + *score_size)), *Arc::clone(&board_size)],
     ).exit_on_esc(true).resizable(false).build().unwrap();
 
     let board = Board::new(
@@ -32,7 +33,11 @@ fn main() {
 
     let mut board_controller = BoardController::new(board);
 
-    let board_view = BoardView::new(Arc::clone(&board_size), Arc::clone(&block_size));
+    let board_view = BoardView::new(
+        Arc::clone(&board_size),
+        Arc::clone(&block_size),
+        Arc::clone(&score_size)
+    );
 
     while let Some(event) = &window.next() {
         board_controller.event(event);

@@ -10,7 +10,7 @@ pub struct BoardViewSettings {
     block_size: Arc<f64>,
     snake_color: Color,
     board_background_color: Color,
-    food_color: Color
+    food_color: Color,
 }
 
 impl BoardViewSettings {
@@ -19,7 +19,7 @@ impl BoardViewSettings {
             block_size,
             snake_color: [0.18, 0.80, 0.44, 1.0],
             board_background_color: [0.204, 0.286, 0.369, 1.0],
-            food_color: [1.0, 0.0, 0.0, 1.0]
+            food_color: [1.0, 0.0, 0.0, 1.0],
         }
     }
 }
@@ -28,7 +28,7 @@ pub struct GridViewSettings {
     board_size: Arc<f64>,
     block_size: Arc<f64>,
     grid_line_color: Color,
-    line_radius: f64
+    line_radius: f64,
 }
 
 impl GridViewSettings {
@@ -37,21 +37,39 @@ impl GridViewSettings {
             board_size,
             block_size,
             grid_line_color: [0.0, 0.0, 0.0, 0.8],
-            line_radius: 1.0
+            line_radius: 1.0,
+        }
+    }
+}
+
+struct ScoreViewSettings {
+    score_size: Arc<f64>,
+    board_size: Arc<f64>,
+    background_color: Color,
+}
+
+impl ScoreViewSettings {
+    pub fn new(score_size: Arc<f64>, board_size: Arc<f64>) -> ScoreViewSettings {
+        ScoreViewSettings {
+            score_size,
+            board_size,
+            background_color: [0.0, 0.0, 0.0, 1.0]
         }
     }
 }
 
 pub struct BoardView {
     board_settings: BoardViewSettings,
-    grid_settings: GridViewSettings
+    grid_settings: GridViewSettings,
+    score_settings: ScoreViewSettings,
 }
 
 impl BoardView {
-    pub fn new(board_size: Arc<f64>, block_size: Arc<f64>) -> BoardView {
+    pub fn new(board_size: Arc<f64>, block_size: Arc<f64>, score_size: Arc<f64>) -> BoardView {
         BoardView {
             board_settings: BoardViewSettings::new(block_size.clone()),
-            grid_settings: GridViewSettings::new(board_size.clone(), block_size.clone())
+            grid_settings: GridViewSettings::new(board_size.clone(), block_size.clone()),
+            score_settings: ScoreViewSettings::new(score_size.clone(), board_size.clone()),
         }
     }
 
@@ -60,12 +78,13 @@ impl BoardView {
         controller: &BoardController,
         context: &Context,
         graphics: &mut G2d,
-        _args: &RenderArgs
+        _args: &RenderArgs,
     ) {
         clear(self.board_settings.board_background_color, graphics);
 
         self.draw_grid(context, graphics);
         self.draw_snake(&controller.board.snake, context, graphics);
+        self.draw_scores(context, graphics);
 
         //Food
         self.draw_block(
@@ -73,7 +92,7 @@ impl BoardView {
             *&controller.board.food.x,
             *&controller.board.food.y,
             context,
-            graphics
+            graphics,
         )
     }
 
@@ -89,7 +108,7 @@ impl BoardView {
                 self.grid_settings.line_radius,
                 [0.0, i, *self.grid_settings.board_size, i],
                 context.transform,
-                graphics
+                graphics,
             );
 
             //Vertical
@@ -98,7 +117,7 @@ impl BoardView {
                 self.grid_settings.line_radius,
                 [i, 0.0, i, *self.grid_settings.board_size],
                 context.transform,
-                graphics
+                graphics,
             );
         }
     }
@@ -116,6 +135,19 @@ impl BoardView {
         rectangle(
             color,
             [gui_x, gui_y, *self.board_settings.block_size, *self.board_settings.block_size],
+            context.transform,
+            graphics,
+        );
+    }
+
+    pub fn draw_scores(&self, context: &Context, graphics: &mut G2d) {
+        rectangle(
+            self.score_settings.background_color,
+            [*self.score_settings.board_size,
+                0.0,
+                (*self.score_settings.board_size + *self.score_settings.score_size),
+                *self.score_settings.board_size
+            ],
             context.transform,
             graphics,
         );
