@@ -1,5 +1,6 @@
 use crate::board::Board;
 use crate::food::Food;
+use crate::score::Score;
 
 use piston_window::{GenericEvent, Button};
 use crossbeam_utils::thread;
@@ -7,12 +8,16 @@ use std::sync::{Arc, Mutex};
 
 
 pub struct BoardController {
-    pub board: Board
+    pub board: Board,
+    pub score: Score,
 }
 
 impl BoardController {
-    pub fn new(board: Board) -> BoardController {
-        BoardController { board }
+    pub fn new(board: Board, score: Score) -> BoardController {
+        BoardController {
+            board,
+            score,
+        }
     }
 
     pub fn event<E: GenericEvent>(&mut self, e: &E) {
@@ -22,11 +27,13 @@ impl BoardController {
 
         if let Some(args) = e.update_args() {
             if self.board.snake.is_dead(&*self.board.board_size, &*self.board.block_size) {
+                self.score.reset();
+
                 self.board = Board::new(
                     self.board.board_size.clone(),
                     self.board.block_size.clone(),
                     self.board.move_delay.clone(),
-                    self.board.fps.clone()
+                    self.board.fps.clone(),
                 )
             }
 
@@ -42,6 +49,7 @@ impl BoardController {
                 self.board.food = self.get_next_food().unwrap();
                 self.board.next_food = None;
                 self.board.snake.just_eat = true;
+                self.score.update_score();
             }
 
             self.board.snake.update(args.dt);

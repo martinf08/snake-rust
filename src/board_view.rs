@@ -1,16 +1,18 @@
-use crate::snake::Snake;
 use crate::board_controller::BoardController;
+use crate::score::Score;
+use crate::snake::Snake;
 
 use piston_window::types::Color;
-use piston_window::{rectangle, Context, G2d, RenderArgs, clear, line};
+use piston_window::{rectangle, Context, G2d, RenderArgs, clear, line, Glyphs, text, Transformed};
 use std::sync::Arc;
+use gfx_device_gl::Device;
 
 
 pub struct BoardViewSettings {
     block_size: Arc<f64>,
     snake_color: Color,
     board_background_color: Color,
-    food_color: Color
+    food_color: Color,
 }
 
 impl BoardViewSettings {
@@ -19,7 +21,7 @@ impl BoardViewSettings {
             block_size,
             snake_color: [0.18, 0.80, 0.44, 1.0],
             board_background_color: [0.204, 0.286, 0.369, 1.0],
-            food_color: [1.0, 0.0, 0.0, 1.0]
+            food_color: [1.0, 0.0, 0.0, 1.0],
         }
     }
 }
@@ -28,7 +30,7 @@ pub struct GridViewSettings {
     board_size: Arc<f64>,
     block_size: Arc<f64>,
     grid_line_color: Color,
-    line_radius: f64
+    line_radius: f64,
 }
 
 impl GridViewSettings {
@@ -37,35 +39,61 @@ impl GridViewSettings {
             board_size,
             block_size,
             grid_line_color: [0.0, 0.0, 0.0, 0.8],
-            line_radius: 1.0
+            line_radius: 1.0,
+        }
+    }
+}
+
+struct ScoreViewSettings {
+    score_size: Arc<f64>,
+    board_size: Arc<f64>,
+    background_color: Color,
+    title_color: Color,
+    title_size: u32,
+}
+
+impl ScoreViewSettings {
+    pub fn new(score_size: Arc<f64>, board_size: Arc<f64>) -> ScoreViewSettings {
+        ScoreViewSettings {
+            score_size,
+            board_size,
+            background_color: [0.0, 0.0, 0.0, 1.0],
+            title_color: [1.0; 4],
+            title_size: 22,
         }
     }
 }
 
 pub struct BoardView {
     board_settings: BoardViewSettings,
-    grid_settings: GridViewSettings
+    grid_settings: GridViewSettings,
+    score_settings: ScoreViewSettings,
+    glyphs: Glyphs,
 }
 
 impl BoardView {
-    pub fn new(board_size: Arc<f64>, block_size: Arc<f64>) -> BoardView {
+    pub fn new(board_size: Arc<f64>, block_size: Arc<f64>, score_size: Arc<f64>, glyphs: Glyphs) -> BoardView {
         BoardView {
             board_settings: BoardViewSettings::new(block_size.clone()),
-            grid_settings: GridViewSettings::new(board_size.clone(), block_size.clone())
+            grid_settings: GridViewSettings::new(board_size.clone(), block_size.clone()),
+            score_settings: ScoreViewSettings::new(score_size.clone(), board_size.clone()),
+            glyphs,
         }
     }
 
     pub fn draw(
-        &self,
+        &mut self,
         controller: &BoardController,
         context: &Context,
         graphics: &mut G2d,
-        _args: &RenderArgs
+        device: &mut Device,
+        _args: &RenderArgs,
     ) {
         clear(self.board_settings.board_background_color, graphics);
 
         self.draw_grid(context, graphics);
         self.draw_snake(&controller.board.snake, context, graphics);
+        self.draw_scores(&controller.score, context, graphics, device);
 
         //Food
         self.draw_block(
@@ -73,7 +101,7 @@ impl BoardView {
             *&controller.board.food.x,
             *&controller.board.food.y,
             context,
-            graphics
+            graphics,
         )
     }
 
@@ -89,7 +117,7 @@ impl BoardView {
                 self.grid_settings.line_radius,
                 [0.0, i, *self.grid_settings.board_size, i],
                 context.transform,
-                graphics
+                graphics,
             );
 
             //Vertical
@@ -98,7 +126,7 @@ impl BoardView {
                 self.grid_settings.line_radius,
                 [i, 0.0, i, *self.grid_settings.board_size],
                 context.transform,
-                graphics
+                graphics,
             );
         }
     }
@@ -120,4 +148,61 @@ impl BoardView {
             graphics,
         );
     }
+
+    pub fn draw_scores(&mut self, score: &Score, context: &Context, graphics: &mut G2d, device: &mut Device) {
+        let end_x = *self.score_settings.board_size + *self.score_settings.score_size;
+
+        rectangle(
+            self.score_settings.background_color,
+            [*self.score_settings.board_size,
+                0.0,
+                end_x,
+                *self.score_settings.board_size
+            ],
+            context.transform,
+            graphics,
+        );
+
+        text(
+            self.score_settings.title_color,
+            self.score_settings.title_size,
+            &*score.title,
+            &mut self.glyphs,
+            context.transform.trans(
+                &*self.score_settings.board_size + 20.0,
+                40.0,
+            ),
+            graphics,
+        ).unwrap();
+
+        let mut i = 2.0;
+        for (_k, mut score_element) in score.scores
+            .clone()
+            .into_iter() {
+
+            text(
+                self.score_settings.title_color,
+                self.score_settings.title_size - 10,
+                &*format!("{} : {}", ascii_uc_first(&mut score_element.title), &score_element.count),
+                &mut self.glyphs,
+                context.transform.trans(
+                    &*self.score_settings.board_size + 10.0,
+                    i * 60.0,
+                ),
+                graphics,
+            ).unwrap();
+
+            i += 1.0;
+        }
+
+        self.glyphs.factory.encoder.flush(device);
+    }
+}
+
+fn ascii_uc_first(text: &mut str) -> &mut str {
+    if let Some(char) = text.get_mut(0..1) {
+        char.make_ascii_uppercase();
+    }
+
+    text
 }
