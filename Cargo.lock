@@ -1242,7 +1242,7 @@ dependencies = [
 
 [[package]]
 name = "snake-rust"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "crossbeam-utils",
  "find_folder",
