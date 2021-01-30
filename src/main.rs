@@ -39,13 +39,11 @@ fn main() {
     let assets = find_folder::Search::ParentsThenKids(3, 3)
         .for_folder("assets").unwrap();
 
-    let glyphs = window.load_font(assets.join("lcd-solid.ttf")).unwrap();
-
     let mut board_view = BoardView::new(
         Arc::clone(&board_size),
         Arc::clone(&block_size),
         Arc::clone(&score_size),
-        glyphs,
+        window.load_font(assets.join("lcd-solid.ttf")).unwrap(),
     );
 
 

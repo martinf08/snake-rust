@@ -169,25 +169,25 @@ impl BoardView {
             &*score.title,
             &mut self.glyphs,
             context.transform.trans(
-                &*self.score_settings.board_size + 10.0,
-                40.0
+                &*self.score_settings.board_size + 20.0,
+                40.0,
             ),
             graphics,
         ).unwrap();
 
         let mut i = 2.0;
-        for (_k, score_element) in score.scores
+        for (_k, mut score_element) in score.scores
             .clone()
             .into_iter() {
 
             text(
                 self.score_settings.title_color,
                 self.score_settings.title_size - 10,
-                &*format!("{} : {}", &score_element.title, &score_element.count),
+                &*format!("{} : {}", ascii_uc_first(&mut score_element.title), &score_element.count),
                 &mut self.glyphs,
                 context.transform.trans(
                     &*self.score_settings.board_size + 10.0,
-                    i * 60.0
+                    i * 60.0,
                 ),
                 graphics,
             ).unwrap();
@@ -197,4 +197,12 @@ impl BoardView {
 
         self.glyphs.factory.encoder.flush(device);
     }
+}
+
+fn ascii_uc_first(text: &mut str) -> &mut str {
+    if let Some(char) = text.get_mut(0..1) {
+        char.make_ascii_uppercase();
+    }
+
+    text
 }
