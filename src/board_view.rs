@@ -3,7 +3,7 @@ use crate::score::Score;
 use crate::snake::Snake;
 
 use piston_window::types::Color;
-use piston_window::{rectangle, Context, G2d, RenderArgs, clear, line, Glyphs, text, Transformed, GfxDevice};
+use piston_window::{rectangle, Context, G2d, RenderArgs, clear, line, Glyphs, text, Transformed};
 use std::sync::Arc;
 use gfx_device_gl::Device;
 
@@ -150,7 +150,7 @@ impl BoardView {
     }
 
     pub fn draw_scores(&mut self, score: &Score, context: &Context, graphics: &mut G2d, device: &mut Device) {
-        let end_x = (*self.score_settings.board_size + *self.score_settings.score_size);
+        let end_x = *self.score_settings.board_size + *self.score_settings.score_size;
 
         rectangle(
             self.score_settings.background_color,
@@ -169,9 +169,31 @@ impl BoardView {
             &*score.title,
             &mut self.glyphs,
             context.transform.trans(
-                &*self.score_settings.board_size + 20.0, 40.0),
+                &*self.score_settings.board_size + 10.0,
+                40.0
+            ),
             graphics,
         ).unwrap();
+
+        let mut i = 2.0;
+        for (_k, score_element) in score.scores
+            .clone()
+            .into_iter() {
+
+            text(
+                self.score_settings.title_color,
+                self.score_settings.title_size - 10,
+                &*format!("{} : {}", &score_element.title, &score_element.count),
+                &mut self.glyphs,
+                context.transform.trans(
+                    &*self.score_settings.board_size + 10.0,
+                    i * 60.0
+                ),
+                graphics,
+            ).unwrap();
+
+            i += 1.0;
+        }
 
         self.glyphs.factory.encoder.flush(device);
     }
