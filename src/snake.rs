@@ -1,3 +1,4 @@
+use crate::config::GlobalConfig;
 use crate::food::Food;
 
 use std::collections::LinkedList;
@@ -109,7 +110,7 @@ impl Snake {
     pub fn update(&mut self, delta_time: f64) {
         self.frame_handler.current_delta += delta_time;
 
-        if self.frame_handler.current_delta < (1.0 / &*self.frame_handler.fps) {
+        if self.frame_handler.current_delta < (1.0 / &self.frame_handler.config.computed_config.fps) {
             return;
         }
 
@@ -185,24 +186,22 @@ impl Snake {
 
 #[derive(Clone)]
 pub struct FrameHandler {
-    pub(crate) fps: Arc<f64>,
-    pub(crate) move_delay: Arc<f64>,
-    block_size: Arc<f64>,
+    pub config: Arc<GlobalConfig>,
     current_delta: f64,
 }
 
 impl FrameHandler {
-    pub fn new(fps: Arc<f64>, move_delay: Arc<f64>, block_size: Arc<f64>) -> FrameHandler {
+    pub fn new(config: Arc<GlobalConfig>) -> FrameHandler {
         FrameHandler {
-            fps,
-            move_delay,
-            block_size,
+            config,
             current_delta: 0.0,
         }
     }
 
     pub fn get_move_distance(&self) -> f64 {
-        &*self.fps * &*self.move_delay / &*self.fps
+        ((&self.config.computed_config.board_size / &self.config.computed_config.block_size)
+            / &self.config.computed_config.fps)
+            * &self.config.computed_config.move_delay
     }
 }
 

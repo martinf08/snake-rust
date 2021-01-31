@@ -1,5 +1,6 @@
-use crate::snake::{Snake, Point, FrameHandler};
+use crate::config::GlobalConfig;
 use crate::food::Food;
+use crate::snake::{Snake, Point, FrameHandler};
 
 use rand::seq::SliceRandom;
 use std::iter::FromIterator;
@@ -7,33 +8,31 @@ use std::sync::Arc;
 use std::collections::LinkedList;
 
 pub struct Board {
-    pub board_size: Arc<f64>,
-    pub block_size: Arc<f64>,
+    pub config: Arc<GlobalConfig>,
     pub snake: Snake,
     pub food: Food,
     pub next_food: Option<Food>,
-    pub move_delay: Arc<f64>,
     pub current_delta: f64,
     pub grid: Grid,
-    pub fps: Arc<f64>,
 }
 
 impl Board {
-    pub fn new(board_size: Arc<f64>, block_size: Arc<f64>, move_delay: Arc<f64>, fps: Arc<f64>) -> Board {
+    pub fn new(config: Arc<GlobalConfig>) -> Board {
+
         Board {
-            board_size: board_size.clone(),
-            block_size: block_size.clone(),
+            config: config.clone(),
             snake: Snake::new(
                 4.0,
                 4.0,
-                FrameHandler::new(fps.clone(), move_delay.clone(), block_size.clone())
+                FrameHandler::new(config.clone()),
             ),
             food: Food::new(),
             next_food: None,
-            move_delay,
             current_delta: 0.0,
-            grid: Grid::new(&board_size.clone(), &block_size.clone()),
-            fps
+            grid: Grid::new(
+                *Arc::new(&config.computed_config.board_size),
+                *Arc::new(&config.computed_config.block_size)
+            )
         }
     }
 }
