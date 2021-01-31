@@ -6,5 +6,18 @@ Snake game coded in rust
 ![version](https://img.shields.io/badge/cargo-1.47.0-blue)
 ![version](https://img.shields.io/badge/rustc-1.47.0-blue)
 
-Build the project
+## Run the project
+<pre>cargo run</pre>
+
+## Optimized build
 <pre>cargo build --release</pre>
+
+- Create new folder
+- Copy assets folder, Config.toml and binary file in this folder
+<pre>
+.
+├── assets
+   └── lcd-solid.ttf   # Font file
+├── snake-rust         # Binary file from target/release
+└── Config.toml        # Config file
+</pre>

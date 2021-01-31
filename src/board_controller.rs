@@ -26,20 +26,15 @@ impl BoardController {
         }
 
         if let Some(args) = e.update_args() {
-            if self.board.snake.is_dead(&*self.board.board_size, &*self.board.block_size) {
+            if self.board.snake.is_dead(&self.board.config.computed_config.board_size, &self.board.config.computed_config.block_size) {
                 self.score.reset();
 
-                self.board = Board::new(
-                    self.board.board_size.clone(),
-                    self.board.block_size.clone(),
-                    self.board.move_delay.clone(),
-                    self.board.fps.clone(),
-                )
+                self.board = Board::new(self.board.config.clone());
             }
 
             self.board.current_delta += args.dt;
 
-            if *self.board.move_delay <= self.board.current_delta {
+            if self.board.config.computed_config.move_delay <= self.board.current_delta {
                 self.board.current_delta = 0.0;
             }
 

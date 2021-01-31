@@ -1,0 +1,8 @@
+[board]
+block_size = 20
+board_block_length = 20 # 20x20 blocks
+
+[game]
+event = 'default'
+wall = 'solid'
+level = 4

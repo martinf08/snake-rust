@@ -6,6 +6,7 @@ use piston_window::types::Color;
 use piston_window::{rectangle, Context, G2d, RenderArgs, clear, line, Glyphs, text, Transformed};
 use std::sync::Arc;
 use gfx_device_gl::Device;
+use crate::config::GlobalConfig;
 
 
 pub struct BoardViewSettings {
@@ -72,11 +73,17 @@ pub struct BoardView {
 }
 
 impl BoardView {
-    pub fn new(board_size: Arc<f64>, block_size: Arc<f64>, score_size: Arc<f64>, glyphs: Glyphs) -> BoardView {
+    pub fn new(config: Arc<GlobalConfig>, glyphs: Glyphs) -> BoardView {
         BoardView {
-            board_settings: BoardViewSettings::new(block_size.clone()),
-            grid_settings: GridViewSettings::new(board_size.clone(), block_size.clone()),
-            score_settings: ScoreViewSettings::new(score_size.clone(), board_size.clone()),
+            board_settings: BoardViewSettings::new(Arc::new(config.computed_config.block_size)),
+            grid_settings: GridViewSettings::new(
+                Arc::new(config.computed_config.board_size),
+                Arc::new(config.computed_config.block_size),
+            ),
+            score_settings: ScoreViewSettings::new(
+                Arc::new(config.computed_config.score_size),
+                Arc::new(config.computed_config.board_size),
+            ),
             glyphs,
         }
     }
@@ -179,7 +186,6 @@ impl BoardView {
         for (_k, mut score_element) in score.scores
             .clone()
             .into_iter() {
-
             text(
                 self.score_settings.title_color,
                 self.score_settings.title_size - 10,
