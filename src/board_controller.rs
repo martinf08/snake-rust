@@ -29,7 +29,7 @@ impl BoardController {
             if self.board.snake.is_dead(&self.board.config.computed_config.board_size, &self.board.config.computed_config.block_size) {
                 self.score.reset();
 
-                self.board = Board::new(self.board.config.clone());
+                self.board = Board::new(self.board.config.clone(), self.board.game_mode.clone());
             }
 
             self.board.current_delta += args.dt;

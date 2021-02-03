@@ -1,5 +1,7 @@
 use crate::config::GlobalConfig;
 use crate::food::Food;
+use crate::game_mode::{GameMode, Mode, Wall};
+
 
 use std::collections::LinkedList;
 use piston_window::Key;
@@ -42,10 +44,11 @@ pub struct Snake {
     pub frame_handler: FrameHandler,
     blocks_to_add: u32,
     middle_block_passed: bool,
+    game_mode: Arc<GameMode>,
 }
 
 impl Snake {
-    pub fn new(x: f64, y: f64, frame_handler: FrameHandler) -> Snake {
+    pub fn new(x: f64, y: f64, frame_handler: FrameHandler, game_mode: Arc<GameMode>) -> Snake {
         let mut body: LinkedList<Point> = LinkedList::new();
 
         for f in FloatIterator::new_with_step(0.0, 2.0, frame_handler.get_move_distance()) {
@@ -62,6 +65,7 @@ impl Snake {
             frame_handler,
             blocks_to_add: 0,
             middle_block_passed: false,
+            game_mode: game_mode.clone(),
         }
     }
 
@@ -167,9 +171,16 @@ impl Snake {
 
     pub fn is_dead(&self, board_size: &f64, block_size: &f64) -> bool {
         let (x, y) = self.head_position();
+        if self.overlap_tail(&x, &y) { return true; }
+
+        match self.game_mode.wall {
+            Wall::Fluid => return false,
+            Wall::Solid => ()
+        }
+
         let max_distance = *board_size as f64 / *block_size as f64 - 1.0;
 
-        self.overlap_tail(&x, &y) || x < 0.0 || x > max_distance || y < 0.0 || y > max_distance
+         x < 0.0 || x > max_distance || y < 0.0 || y > max_distance
     }
 
     fn at_ceil_edge(&self, (head_x, head_y): (&f64, &f64)) -> bool {

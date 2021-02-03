@@ -3,6 +3,7 @@ mod board_controller;
 mod board_view;
 mod config;
 mod food;
+mod game_mode;
 mod score;
 mod snake;
 
@@ -10,16 +11,16 @@ use crate::board::Board;
 use crate::board_controller::BoardController;
 use crate::board_view::BoardView;
 use crate::config::GlobalConfig;
+use crate::game_mode::GameMode;
 use crate::score::Score;
 
 use piston_window::*;
-use std::sync::Arc;
 use std::path::Path;
+use std::sync::Arc;
 
 
 fn main() {
     let config = Arc::new(GlobalConfig::new());
-
     let mut window: PistonWindow = WindowSettings::new(
         "snake",
         [
@@ -28,7 +29,10 @@ fn main() {
         ],
     ).exit_on_esc(true).resizable(false).build().unwrap();
 
-    let board = Board::new(config.clone());
+    let board = Board::new(
+        config.clone(),
+        Arc::new(GameMode::new(config.clone()))
+    );
 
     let mut board_controller = BoardController::new(board, Score::new());
 

@@ -2,29 +2,33 @@ use serde::Deserialize;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
+use std::sync::Arc;
 
 pub struct GlobalConfig {
-    pub computed_config: ComputedConfig
+    pub computed_config: ComputedConfig,
+    pub config: Arc<Config>,
 }
 
 impl GlobalConfig {
     pub fn new() -> GlobalConfig {
+        let config = Arc::new(Config::new());
         GlobalConfig {
-            computed_config: ComputedConfig::new(Config::new())
+            computed_config: ComputedConfig::new(config.clone()),
+            config: config.clone(),
         }
     }
 }
 
 pub struct ComputedConfig {
-   pub board_size: f64,
-   pub block_size: f64,
-   pub move_delay: f64,
-   pub score_size: f64,
-   pub fps: f64,
+    pub board_size: f64,
+    pub block_size: f64,
+    pub move_delay: f64,
+    pub score_size: f64,
+    pub fps: f64,
 }
 
 impl ComputedConfig {
-    pub fn new(config: Config) -> ComputedConfig {
+    pub fn new(config: Arc<Config>) -> ComputedConfig {
         ComputedConfig {
             board_size: (config.board.block_size * config.board.board_block_length) as f64,
             block_size: config.board.block_size as f64,
@@ -39,13 +43,13 @@ impl ComputedConfig {
 #[derive(Deserialize)]
 pub struct Config {
     pub board: Board,
-    game: Game,
+    pub game: Game,
 }
 
 #[derive(Deserialize)]
-struct Game {
-    event: String,
-    wall: String,
+pub struct Game {
+    pub mode: String,
+    pub wall: String,
     level: u32,
 }
 
