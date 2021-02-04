@@ -4,5 +4,5 @@ board_block_length = 20 # 20x20 blocks
 
 [game]
 mode = 'default'
-wall = 'fluid'
+wall = 'fluid' # fluid or solid
 level = 4
