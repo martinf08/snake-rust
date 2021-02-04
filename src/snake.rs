@@ -74,16 +74,57 @@ impl Snake {
         (head.x, head.y)
     }
 
-    pub fn get_next_point(&self) -> Point {
+    pub fn get_next_point(&self, board_size: &f64, block_size: &f64) -> Point {
         let (head_x, head_y) = self.head_position();
 
         let move_distance = self.frame_handler.get_move_distance();
+        let max_distance = *board_size as f64 / *block_size as f64 - 1.0;
 
-        match self.direction {
-            Direction::Up => Point { x: head_x, y: head_y - move_distance },
-            Direction::Down => Point { x: head_x, y: head_y + move_distance },
-            Direction::Left => Point { x: head_x - move_distance, y: head_y },
-            Direction::Right => Point { x: head_x + move_distance, y: head_y },
+        match self.game_mode.wall {
+            Wall::Solid => match self.direction {
+                Direction::Up => Point { x: head_x, y: head_y - move_distance },
+                Direction::Down => Point { x: head_x, y: head_y + move_distance },
+                Direction::Left => Point { x: head_x - move_distance, y: head_y },
+                Direction::Right => Point { x: head_x + move_distance, y: head_y },
+            },
+            Wall::Fluid => match self.direction {
+                Direction::Up => {
+                    let next_y = if head_y - move_distance < 0.0 {
+                        max_distance
+                    } else {
+                        head_y - move_distance
+                    };
+
+                    Point { x: head_x, y: next_y }
+                }
+                Direction::Down => {
+                    let next_y = if head_y + move_distance > max_distance {
+                        0.0
+                    } else {
+                        head_y + move_distance
+                    };
+
+                    Point { x: head_x, y: next_y }
+                }
+                Direction::Left => {
+                    let next_x = if head_x - move_distance < 0.0 {
+                        max_distance
+                    } else {
+                        head_x - move_distance
+                    };
+
+                    Point { x: next_x, y: head_y }
+                }
+                Direction::Right => {
+                    let next_x = if head_x + move_distance > max_distance {
+                        0.0
+                    } else {
+                        head_x + move_distance
+                    };
+
+                    Point { x: next_x, y: head_y }
+                }
+            }
         }
     }
 
@@ -171,16 +212,12 @@ impl Snake {
 
     pub fn is_dead(&self, board_size: &f64, block_size: &f64) -> bool {
         let (x, y) = self.head_position();
-        if self.overlap_tail(&x, &y) { return true; }
-
-        match self.game_mode.wall {
-            Wall::Fluid => return false,
-            Wall::Solid => ()
-        }
-
         let max_distance = *board_size as f64 / *block_size as f64 - 1.0;
 
-         x < 0.0 || x > max_distance || y < 0.0 || y > max_distance
+        match self.game_mode.wall {
+            Wall::Fluid =>self.overlap_tail(&x, &y) && (x != max_distance && y != max_distance),
+            Wall::Solid => self.overlap_tail(&x, &y) || (x < 0.0 || x > max_distance || y < 0.0 || y > max_distance)
+        }
     }
 
     fn at_ceil_edge(&self, (head_x, head_y): (&f64, &f64)) -> bool {
