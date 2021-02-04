@@ -29,7 +29,7 @@ impl BoardController {
             if self.board.snake.is_dead(&self.board.config.computed_config.board_size, &self.board.config.computed_config.block_size) {
                 self.score.reset();
 
-                self.board = Board::new(self.board.config.clone());
+                self.board = Board::new(self.board.config.clone(), self.board.game_mode.clone());
             }
 
             self.board.current_delta += args.dt;
@@ -38,7 +38,12 @@ impl BoardController {
                 self.board.current_delta = 0.0;
             }
 
-            self.board.snake.next_head = Some(self.board.snake.get_next_point());
+            self.board.snake.next_head = Some(
+                self.board.snake.get_next_point(
+                    &self.board.config.computed_config.board_size,
+                    &self.board.config.computed_config.block_size
+                )
+            );
 
             if self.board.snake.next_move_eat(&self.board.food) {
                 self.board.food = self.get_next_food().unwrap();

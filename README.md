@@ -2,7 +2,9 @@
 
 Snake game coded in rust
 
-![Latest Stable Version](https://github.com/martinf08/snake-rust/workflows/build/badge.svg)
+![Latest Stable Version](https://github.com/martinf08/snake-rust/workflows/build-ubuntu/badge.svg)
+![Latest Stable Version](https://github.com/martinf08/snake-rust/workflows/build-macos/badge.svg)
+![Latest Stable Version](https://github.com/martinf08/snake-rust/workflows/build-windows/badge.svg)
 ![version](https://img.shields.io/badge/cargo-1.47.0-blue)
 ![version](https://img.shields.io/badge/rustc-1.47.0-blue)
 
@@ -13,7 +15,7 @@ Snake game coded in rust
 <pre>cargo build --release</pre>
 
 - Create new folder
-- Copy assets folder, Config.toml and binary file in this folder
+- Copy assets folder, Config.toml and binary files in this folder
 <pre>
 .
 ├── assets
@@ -21,3 +23,7 @@ Snake game coded in rust
 ├── snake-rust         # Binary file from target/release
 └── Config.toml        # Config file
 </pre>
+
+## Wall configuration
+- solid : The snake die when he touch the wall
+- fluid : The snake teleport at the opposite side when he touch the wall

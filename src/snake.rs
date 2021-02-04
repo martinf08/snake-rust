@@ -1,5 +1,7 @@
 use crate::config::GlobalConfig;
 use crate::food::Food;
+use crate::game_mode::{GameMode, Mode, Wall};
+
 
 use std::collections::LinkedList;
 use piston_window::Key;
@@ -42,10 +44,11 @@ pub struct Snake {
     pub frame_handler: FrameHandler,
     blocks_to_add: u32,
     middle_block_passed: bool,
+    game_mode: Arc<GameMode>,
 }
 
 impl Snake {
-    pub fn new(x: f64, y: f64, frame_handler: FrameHandler) -> Snake {
+    pub fn new(x: f64, y: f64, frame_handler: FrameHandler, game_mode: Arc<GameMode>) -> Snake {
         let mut body: LinkedList<Point> = LinkedList::new();
 
         for f in FloatIterator::new_with_step(0.0, 2.0, frame_handler.get_move_distance()) {
@@ -62,6 +65,7 @@ impl Snake {
             frame_handler,
             blocks_to_add: 0,
             middle_block_passed: false,
+            game_mode: game_mode.clone(),
         }
     }
 
@@ -70,16 +74,57 @@ impl Snake {
         (head.x, head.y)
     }
 
-    pub fn get_next_point(&self) -> Point {
+    pub fn get_next_point(&self, board_size: &f64, block_size: &f64) -> Point {
         let (head_x, head_y) = self.head_position();
 
         let move_distance = self.frame_handler.get_move_distance();
+        let max_distance = *board_size as f64 / *block_size as f64 - 1.0;
 
-        match self.direction {
-            Direction::Up => Point { x: head_x, y: head_y - move_distance },
-            Direction::Down => Point { x: head_x, y: head_y + move_distance },
-            Direction::Left => Point { x: head_x - move_distance, y: head_y },
-            Direction::Right => Point { x: head_x + move_distance, y: head_y },
+        match self.game_mode.wall {
+            Wall::Solid => match self.direction {
+                Direction::Up => Point { x: head_x, y: head_y - move_distance },
+                Direction::Down => Point { x: head_x, y: head_y + move_distance },
+                Direction::Left => Point { x: head_x - move_distance, y: head_y },
+                Direction::Right => Point { x: head_x + move_distance, y: head_y },
+            },
+            Wall::Fluid => match self.direction {
+                Direction::Up => {
+                    let next_y = if head_y - move_distance < 0.0 {
+                        max_distance
+                    } else {
+                        head_y - move_distance
+                    };
+
+                    Point { x: head_x, y: next_y }
+                }
+                Direction::Down => {
+                    let next_y = if head_y + move_distance > max_distance {
+                        0.0
+                    } else {
+                        head_y + move_distance
+                    };
+
+                    Point { x: head_x, y: next_y }
+                }
+                Direction::Left => {
+                    let next_x = if head_x - move_distance < 0.0 {
+                        max_distance
+                    } else {
+                        head_x - move_distance
+                    };
+
+                    Point { x: next_x, y: head_y }
+                }
+                Direction::Right => {
+                    let next_x = if head_x + move_distance > max_distance {
+                        0.0
+                    } else {
+                        head_x + move_distance
+                    };
+
+                    Point { x: next_x, y: head_y }
+                }
+            }
         }
     }
 
@@ -169,7 +214,10 @@ impl Snake {
         let (x, y) = self.head_position();
         let max_distance = *board_size as f64 / *block_size as f64 - 1.0;
 
-        self.overlap_tail(&x, &y) || x < 0.0 || x > max_distance || y < 0.0 || y > max_distance
+        match self.game_mode.wall {
+            Wall::Fluid =>self.overlap_tail(&x, &y) && (x != max_distance && y != max_distance),
+            Wall::Solid => self.overlap_tail(&x, &y) || (x < 0.0 || x > max_distance || y < 0.0 || y > max_distance)
+        }
     }
 
     fn at_ceil_edge(&self, (head_x, head_y): (&f64, &f64)) -> bool {

@@ -6,6 +6,7 @@ use rand::seq::SliceRandom;
 use std::iter::FromIterator;
 use std::sync::Arc;
 use std::collections::LinkedList;
+use crate::game_mode::GameMode;
 
 pub struct Board {
     pub config: Arc<GlobalConfig>,
@@ -14,10 +15,11 @@ pub struct Board {
     pub next_food: Option<Food>,
     pub current_delta: f64,
     pub grid: Grid,
+    pub game_mode: Arc<GameMode>
 }
 
 impl Board {
-    pub fn new(config: Arc<GlobalConfig>) -> Board {
+    pub fn new(config: Arc<GlobalConfig>, game_mode: Arc<GameMode>) -> Board {
 
         Board {
             config: config.clone(),
@@ -25,6 +27,7 @@ impl Board {
                 4.0,
                 4.0,
                 FrameHandler::new(config.clone()),
+                game_mode.clone()
             ),
             food: Food::new(),
             next_food: None,
@@ -32,7 +35,8 @@ impl Board {
             grid: Grid::new(
                 *Arc::new(&config.computed_config.board_size),
                 *Arc::new(&config.computed_config.block_size)
-            )
+            ),
+            game_mode: game_mode.clone()
         }
     }
 }
