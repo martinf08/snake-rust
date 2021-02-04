@@ -2,7 +2,9 @@
 
 Snake game coded in rust
 
-![Latest Stable Version](https://github.com/martinf08/snake-rust/workflows/build/badge.svg)
+![Latest Stable Version](https://github.com/martinf08/snake-rust/workflows/build-ubuntu/badge.svg)
+![Latest Stable Version](https://github.com/martinf08/snake-rust/workflows/build-macos/badge.svg)
+![Latest Stable Version](https://github.com/martinf08/snake-rust/workflows/build-windows/badge.svg)
 ![version](https://img.shields.io/badge/cargo-1.47.0-blue)
 ![version](https://img.shields.io/badge/rustc-1.47.0-blue)
 

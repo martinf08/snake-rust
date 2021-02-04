@@ -1,4 +1,4 @@
-name: build-windows
+name: build-ubuntu
 
 on:
   push:
