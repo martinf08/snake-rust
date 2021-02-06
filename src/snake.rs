@@ -1,6 +1,6 @@
 use crate::config::GlobalConfig;
 use crate::food::Food;
-use crate::game_mode::{GameMode, Mode, Wall};
+use crate::game_mode::{GameMode, Wall};
 
 
 use std::collections::LinkedList;
@@ -215,7 +215,7 @@ impl Snake {
         let max_distance = *board_size as f64 / *block_size as f64 - 1.0;
 
         match self.game_mode.wall {
-            Wall::Fluid =>self.overlap_tail(&x, &y) && (x != max_distance && y != max_distance),
+            Wall::Fluid => self.overlap_tail(&x, &y) && (x != max_distance && y != max_distance),
             Wall::Solid => self.overlap_tail(&x, &y) || (x < 0.0 || x > max_distance || y < 0.0 || y > max_distance)
         }
     }

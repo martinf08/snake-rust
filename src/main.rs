@@ -4,6 +4,7 @@ mod board_view;
 mod config;
 mod food;
 mod game_mode;
+mod portal;
 mod score;
 mod snake;
 
@@ -31,7 +32,7 @@ fn main() {
 
     let board = Board::new(
         config.clone(),
-        Arc::new(GameMode::new(config.clone()))
+        Arc::new(GameMode::new(config.clone())),
     );
 
     let mut board_controller = BoardController::new(board, Score::new());

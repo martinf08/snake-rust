@@ -41,7 +41,7 @@ impl BoardController {
             self.board.snake.next_head = Some(
                 self.board.snake.get_next_point(
                     &self.board.config.computed_config.board_size,
-                    &self.board.config.computed_config.block_size
+                    &self.board.config.computed_config.block_size,
                 )
             );
 
@@ -64,11 +64,17 @@ impl BoardController {
 
         thread::scope(|s| {
             s.spawn(move |_| {
-                *new_food_clone.lock().unwrap() = local_self.board.food.get_food(
-                    local_self.board.snake.body.clone(),
-                    local_self.board.grid.clone(),
-                    &local_self.board.food,
-                );
+                let grid = local_self
+                    .board.grid
+                    .clone()
+                    .remove_occupied_positions(local_self.board.snake.body.clone(), &local_self.board.food, None);
+
+                let (new_x, new_y) = grid.get_random_position();
+
+                *new_food_clone.lock().unwrap() = Some(Food {
+                    x: new_x,
+                    y: new_y,
+                });
             });
         }).unwrap();
 
