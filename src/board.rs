@@ -1,7 +1,7 @@
 use crate::config::GlobalConfig;
 use crate::food::Food;
 use crate::game_mode::GameMode;
-use crate::portal::Gate;
+use crate::portal::{Gate, Portal};
 use crate::snake::{Snake, Point, FrameHandler};
 
 use rand::seq::SliceRandom;
@@ -18,6 +18,7 @@ pub struct Board {
     pub current_delta: f64,
     pub grid: Grid,
     pub game_mode: Arc<GameMode>,
+    pub portal: Option<Portal>,
 }
 
 impl Board {
@@ -38,6 +39,7 @@ impl Board {
                 *Arc::new(&config.computed_config.block_size),
             ),
             game_mode: game_mode.clone(),
+            portal: None,
         }
     }
 }

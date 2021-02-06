@@ -3,6 +3,6 @@ block_size = 20
 board_block_length = 20 # 20x20 blocks
 
 [game]
-mode = 'default'
+mode = 'portal' # default or portal
 wall = 'fluid' # fluid or solid
 level = 4

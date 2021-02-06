@@ -1,5 +1,7 @@
 use crate::board::Board;
 use crate::food::Food;
+use crate::game_mode::Mode;
+use crate::portal::Portal;
 use crate::score::Score;
 
 use piston_window::{GenericEvent, Button};
@@ -13,7 +15,12 @@ pub struct BoardController {
 }
 
 impl BoardController {
-    pub fn new(board: Board, score: Score) -> BoardController {
+    pub fn new(mut board: Board, score: Score) -> BoardController {
+        if board.game_mode.mode == Mode::Portal {
+            let portal = Portal::new(&board);
+            board.portal = Some(portal);
+        }
+
         BoardController {
             board,
             score,
