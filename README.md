@@ -27,3 +27,7 @@ Snake game coded in rust
 ## Wall configuration
 - solid : The snake die when he touch the wall
 - fluid : The snake teleport at the opposite side when he touch the wall
+
+## Mode configuration
+- default : The default mode, the board is empty
+- portal :Portals blue and yellow appear to wrap the snake when he touch the gate
