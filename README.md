@@ -30,4 +30,4 @@ Snake game coded in rust
 
 ## Mode configuration
 - default : The default mode, the board is empty
-- portal :Portals blue and yellow appear to wrap the snake when he touch the gate
+- portal : Portals blue and yellow appear to wrap the snake when he touch the gate
