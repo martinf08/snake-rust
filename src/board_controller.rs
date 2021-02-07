@@ -1,5 +1,7 @@
 use crate::board::Board;
 use crate::food::Food;
+use crate::game_mode::Mode;
+use crate::portal::Portal;
 use crate::score::Score;
 
 use piston_window::{GenericEvent, Button};
@@ -13,7 +15,12 @@ pub struct BoardController {
 }
 
 impl BoardController {
-    pub fn new(board: Board, score: Score) -> BoardController {
+    pub fn new(mut board: Board, score: Score) -> BoardController {
+        if board.game_mode.mode == Mode::Portal {
+            let portal = Portal::new(&board);
+            board.portal = Some(portal);
+        }
+
         BoardController {
             board,
             score,
@@ -29,7 +36,11 @@ impl BoardController {
             if self.board.snake.is_dead(&self.board.config.computed_config.board_size, &self.board.config.computed_config.block_size) {
                 self.score.reset();
 
-                self.board = Board::new(self.board.config.clone(), self.board.game_mode.clone());
+                self.board = Board::new(
+                    self.board.config.clone(),
+                    self.board.game_mode.clone(),
+                    Some(Portal::new(&self.board))
+                );
             }
 
             self.board.current_delta += args.dt;
@@ -41,15 +52,30 @@ impl BoardController {
             self.board.snake.next_head = Some(
                 self.board.snake.get_next_point(
                     &self.board.config.computed_config.board_size,
-                    &self.board.config.computed_config.block_size
+                    &self.board.config.computed_config.block_size,
                 )
             );
-
             if self.board.snake.next_move_eat(&self.board.food) {
                 self.board.food = self.get_next_food().unwrap();
                 self.board.next_food = None;
                 self.board.snake.just_eat = true;
                 self.score.update_score();
+            }
+
+            if self.board.game_mode.mode == Mode::Portal {
+
+                if let Some(_jump) = self.board.snake.jump {
+                    if !self.board.snake.in_gate() {
+                        self.board.portal = Some(Portal::new(&self.board));
+                        self.board.snake.jump = None;
+                    }
+                }
+
+                if !self.board.portal.as_ref().unwrap().is_used(self.board.portal.clone())
+                    && self.board.snake.next_move_take_gate(self.board.portal.as_mut().unwrap()) {
+
+                    self.board.snake.teleport(self.board.portal.clone().unwrap());
+                }
             }
 
             self.board.snake.update(args.dt);
@@ -64,11 +90,17 @@ impl BoardController {
 
         thread::scope(|s| {
             s.spawn(move |_| {
-                *new_food_clone.lock().unwrap() = local_self.board.food.get_food(
-                    local_self.board.snake.body.clone(),
-                    local_self.board.grid.clone(),
-                    &local_self.board.food,
-                );
+                let grid = local_self
+                    .board.grid
+                    .clone()
+                    .remove_occupied_positions(local_self.board.snake.body.clone(), &local_self.board.food, None);
+
+                let (new_x, new_y) = grid.get_random_position();
+
+                *new_food_clone.lock().unwrap() = Some(Food {
+                    x: new_x,
+                    y: new_y,
+                });
             });
         }).unwrap();
 

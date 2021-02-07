@@ -1,7 +1,7 @@
 use crate::config::GlobalConfig;
 use crate::food::Food;
-use crate::game_mode::{GameMode, Mode, Wall};
-
+use crate::game_mode::{GameMode, Wall};
+use crate::portal::{Portal, Gate};
 
 use std::collections::LinkedList;
 use piston_window::Key;
@@ -33,6 +33,23 @@ pub struct Point {
     pub y: f64,
 }
 
+#[derive(Copy, Clone)]
+pub struct Jump {
+    gate_head: Option<Point>,
+    pub is_jumping: bool,
+    gate_end_position: Option<(f64, f64)>,
+}
+
+impl Jump {
+    pub fn new(point: Point) -> Jump {
+        Jump {
+            gate_head: Some(point),
+            is_jumping: true,
+            gate_end_position: Some((point.x, point.y)),
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct Snake {
     pub body: LinkedList<Point>,
@@ -45,6 +62,7 @@ pub struct Snake {
     blocks_to_add: u32,
     middle_block_passed: bool,
     game_mode: Arc<GameMode>,
+    pub jump: Option<Jump>,
 }
 
 impl Snake {
@@ -66,6 +84,7 @@ impl Snake {
             blocks_to_add: 0,
             middle_block_passed: false,
             game_mode: game_mode.clone(),
+            jump: None,
         }
     }
 
@@ -141,8 +160,9 @@ impl Snake {
     pub fn overlap_tail(&self, x: &f64, y: &f64) -> bool {
         let mut index = 0;
         for point in &self.body {
-            if index > 0 {
+            if index > ((1.0 / self.frame_handler.get_move_distance()) / 2.0).ceil() as u32 {
                 if (point.x, point.y) == (*x, *y) {
+
                     return true;
                 }
             }
@@ -160,6 +180,19 @@ impl Snake {
         }
 
         self.frame_handler.current_delta = 0.0;
+
+        match self.jump.as_mut() {
+            Some(jump) => {
+                if let Some(point) = jump.gate_head {
+                    self.body.push_front(point);
+                    jump.gate_head = None;
+                    jump.is_jumping = true;
+                    return;
+                }
+            }
+            None => ()
+        }
+
 
         let mut need_new_head = true;
 
@@ -207,7 +240,36 @@ impl Snake {
     pub fn next_move_eat(&self, food: &Food) -> bool {
         let Point { x, y } = self.next_head.unwrap();
 
-        return (x.round(), y.round()) == (food.x as f64, food.y as f64);
+        return (x.round(), y.round()) == (food.x, food.y);
+    }
+
+    pub fn next_move_take_gate(&self, portal: &mut Portal) -> bool {
+        let Point { x, y } = self.next_head.unwrap();
+
+        for gate in portal.gates.iter() {
+            let mut gate = gate.lock().unwrap();
+            if (x.round(), y.round()) != (gate.x, gate.y) {
+                continue;
+            }
+
+            gate.used = true;
+
+            return true;
+        }
+
+        false
+    }
+
+    pub fn teleport(&mut self, portal: Portal) {
+        let Gate { x, y, .. } = *portal.gates
+            .iter()
+            .filter(|gate| !gate.lock().unwrap().used)
+            .last()
+            .unwrap()
+            .lock()
+            .unwrap();
+
+        self.jump = Some(Jump::new(Point { x, y }));
     }
 
     pub fn is_dead(&self, board_size: &f64, block_size: &f64) -> bool {
@@ -215,9 +277,20 @@ impl Snake {
         let max_distance = *board_size as f64 / *block_size as f64 - 1.0;
 
         match self.game_mode.wall {
-            Wall::Fluid =>self.overlap_tail(&x, &y) && (x != max_distance && y != max_distance),
-            Wall::Solid => self.overlap_tail(&x, &y) || (x < 0.0 || x > max_distance || y < 0.0 || y > max_distance)
+            Wall::Fluid => self.overlap_tail(&x, &y) && (x != max_distance && y != max_distance),
+            Wall::Solid => self.overlap_tail(&x, &y) || x < 0.0 || x > max_distance || y < 0.0 || y > max_distance
         }
+    }
+
+    pub fn in_gate(&mut self) -> bool {
+        let Point { x: tail_x, y: tail_y } = self.body.back().unwrap();
+        let (gate_x, gate_y) = self.jump.unwrap().gate_end_position.unwrap();
+
+        if self.jump.unwrap().is_jumping && (tail_x, tail_y) == (&gate_x, &gate_y) {
+            return false;
+        }
+
+        true
     }
 
     fn at_ceil_edge(&self, (head_x, head_y): (&f64, &f64)) -> bool {
@@ -247,9 +320,7 @@ impl FrameHandler {
     }
 
     pub fn get_move_distance(&self) -> f64 {
-        ((&self.config.computed_config.board_size / &self.config.computed_config.block_size)
-            / &self.config.computed_config.fps)
-            * &self.config.computed_config.move_delay
+        (self.config.computed_config.block_size  / &self.config.computed_config.fps) * &self.config.computed_config.move_delay
     }
 }
 

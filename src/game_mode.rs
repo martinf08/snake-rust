@@ -2,6 +2,7 @@ use crate::config::GlobalConfig;
 
 use std::sync::Arc;
 
+#[derive(PartialEq)]
 pub enum Mode {
     Default,
     Portal,

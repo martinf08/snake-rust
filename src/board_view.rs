@@ -3,10 +3,11 @@ use crate::score::Score;
 use crate::snake::Snake;
 
 use piston_window::types::Color;
-use piston_window::{rectangle, Context, G2d, RenderArgs, clear, line, Glyphs, text, Transformed};
+use piston_window::*;
 use std::sync::Arc;
 use gfx_device_gl::Device;
 use crate::config::GlobalConfig;
+use crate::portal::Portal;
 
 
 pub struct BoardViewSettings {
@@ -14,6 +15,9 @@ pub struct BoardViewSettings {
     snake_color: Color,
     board_background_color: Color,
     food_color: Color,
+    gate_a_color: Color,
+    gate_b_color: Color,
+    gate_ellipse_x_ratio: f64,
 }
 
 impl BoardViewSettings {
@@ -23,6 +27,9 @@ impl BoardViewSettings {
             snake_color: [0.18, 0.80, 0.44, 1.0],
             board_background_color: [0.204, 0.286, 0.369, 1.0],
             food_color: [1.0, 0.0, 0.0, 1.0],
+            gate_a_color: [0.043, 0.99, 0.97, 1.0],
+            gate_b_color: [0.99, 0.98, 0.549, 1.0],
+            gate_ellipse_x_ratio: 1.22,
         }
     }
 }
@@ -90,7 +97,7 @@ impl BoardView {
 
     pub fn draw(
         &mut self,
-        controller: &BoardController,
+        controller: &mut BoardController,
         context: &Context,
         graphics: &mut G2d,
         device: &mut Device,
@@ -109,7 +116,9 @@ impl BoardView {
             *&controller.board.food.y,
             context,
             graphics,
-        )
+        );
+
+        self.draw_gates(controller.board.portal.as_mut().unwrap(), context, graphics);
     }
 
     fn draw_grid(&self, context: &Context, graphics: &mut G2d) {
@@ -151,6 +160,21 @@ impl BoardView {
         rectangle(
             color,
             [gui_x, gui_y, *self.board_settings.block_size, *self.board_settings.block_size],
+            context.transform,
+            graphics,
+        );
+    }
+
+    pub fn draw_ellipse(&self, color: Color, x: f64, y: f64, context: &Context, graphics: &mut G2d) {
+        let gui_x = x as f64 * *self.board_settings.block_size;
+        let gui_y = y as f64 * *self.board_settings.block_size;
+
+        let ellipse_x_size = *self.board_settings.block_size / self.board_settings.gate_ellipse_x_ratio;
+        let fixed_x = gui_x + ((*self.board_settings.block_size - ellipse_x_size) / 2.0);
+
+        ellipse(
+            color,
+            [fixed_x, gui_y, ellipse_x_size, *self.board_settings.block_size],
             context.transform,
             graphics,
         );
@@ -202,6 +226,20 @@ impl BoardView {
         }
 
         self.glyphs.factory.encoder.flush(device);
+    }
+
+    fn draw_gates(&self, portal: &mut Portal, context: &Context, graphics: &mut G2d) {
+        for (i, gate) in portal.gates.iter().enumerate() {
+            let color = match i {
+                0 => Some(self.board_settings.gate_a_color),
+                1 => Some(self.board_settings.gate_b_color),
+                _ => None
+            };
+
+            let gate = gate.lock().unwrap();
+
+            self.draw_ellipse(color.unwrap(), gate.x, gate.y, context, graphics);
+        }
     }
 }
 

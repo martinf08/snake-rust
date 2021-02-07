@@ -4,6 +4,7 @@ mod board_view;
 mod config;
 mod food;
 mod game_mode;
+mod portal;
 mod score;
 mod snake;
 
@@ -31,7 +32,8 @@ fn main() {
 
     let board = Board::new(
         config.clone(),
-        Arc::new(GameMode::new(config.clone()))
+        Arc::new(GameMode::new(config.clone())),
+        None
     );
 
     let mut board_controller = BoardController::new(board, Score::new());
@@ -52,7 +54,7 @@ fn main() {
             }
 
             window.draw_2d(event, |context, graphics, device| {
-                board_view.draw(&board_controller, &context, graphics, device, &args)
+                board_view.draw(&mut board_controller, &context, graphics, device, &args)
             });
         }
     }
