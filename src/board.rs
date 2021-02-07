@@ -22,7 +22,7 @@ pub struct Board {
 }
 
 impl Board {
-    pub fn new(config: Arc<GlobalConfig>, game_mode: Arc<GameMode>) -> Board {
+    pub fn new(config: Arc<GlobalConfig>, game_mode: Arc<GameMode>, portal: Option<Portal>) -> Board {
         Board {
             config: config.clone(),
             snake: Snake::new(
@@ -39,7 +39,7 @@ impl Board {
                 *Arc::new(&config.computed_config.block_size),
             ),
             game_mode: game_mode.clone(),
-            portal: None,
+            portal,
         }
     }
 }

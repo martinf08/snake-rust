@@ -36,7 +36,11 @@ impl BoardController {
             if self.board.snake.is_dead(&self.board.config.computed_config.board_size, &self.board.config.computed_config.block_size) {
                 self.score.reset();
 
-                self.board = Board::new(self.board.config.clone(), self.board.game_mode.clone());
+                self.board = Board::new(
+                    self.board.config.clone(),
+                    self.board.game_mode.clone(),
+                    Some(Portal::new(&self.board))
+                );
             }
 
             self.board.current_delta += args.dt;
@@ -51,12 +55,27 @@ impl BoardController {
                     &self.board.config.computed_config.block_size,
                 )
             );
-
             if self.board.snake.next_move_eat(&self.board.food) {
                 self.board.food = self.get_next_food().unwrap();
                 self.board.next_food = None;
                 self.board.snake.just_eat = true;
                 self.score.update_score();
+            }
+
+            if self.board.game_mode.mode == Mode::Portal {
+
+                if let Some(_jump) = self.board.snake.jump {
+                    if !self.board.snake.in_gate() {
+                        self.board.portal = Some(Portal::new(&self.board));
+                        self.board.snake.jump = None;
+                    }
+                }
+
+                if !self.board.portal.as_ref().unwrap().is_used(self.board.portal.clone())
+                    && self.board.snake.next_move_take_gate(self.board.portal.as_mut().unwrap()) {
+
+                    self.board.snake.teleport(self.board.portal.clone().unwrap());
+                }
             }
 
             self.board.snake.update(args.dt);

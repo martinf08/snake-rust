@@ -97,7 +97,7 @@ impl BoardView {
 
     pub fn draw(
         &mut self,
-        controller: &BoardController,
+        controller: &mut BoardController,
         context: &Context,
         graphics: &mut G2d,
         device: &mut Device,
@@ -118,7 +118,7 @@ impl BoardView {
             graphics,
         );
 
-        self.draw_gates(&mut controller.board.portal.unwrap(), context, graphics);
+        self.draw_gates(controller.board.portal.as_mut().unwrap(), context, graphics);
     }
 
     fn draw_grid(&self, context: &Context, graphics: &mut G2d) {
@@ -229,12 +229,14 @@ impl BoardView {
     }
 
     fn draw_gates(&self, portal: &mut Portal, context: &Context, graphics: &mut G2d) {
-        for (i, gate) in portal.enumerate() {
+        for (i, gate) in portal.gates.iter().enumerate() {
             let color = match i {
                 0 => Some(self.board_settings.gate_a_color),
                 1 => Some(self.board_settings.gate_b_color),
                 _ => None
             };
+
+            let gate = gate.lock().unwrap();
 
             self.draw_ellipse(color.unwrap(), gate.x, gate.y, context, graphics);
         }

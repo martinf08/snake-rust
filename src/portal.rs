@@ -1,18 +1,18 @@
-use crossbeam_utils::thread;
-use std::sync::{Arc, Mutex};
 use crate::board::Board;
 
-#[derive(Copy, Clone)]
+use crossbeam_utils::thread;
+use std::sync::{Arc, Mutex};
+
+#[derive(Clone)]
 pub struct Gate {
     pub x: f64,
     pub y: f64,
     pub used: bool,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct Portal {
-    pub gate_a: Gate,
-    pub gate_b: Gate,
+    pub gates: Vec<Arc<Mutex<Gate>>>,
     pub next: Option<u32>,
 }
 
@@ -42,38 +42,52 @@ impl Portal {
                         continue;
                     }
 
-                    let (x, y) = grid.get_random_position();
-                    gates_clone.lock().unwrap().push(Some(Gate { x, y, used: false }));
+                    let other_gates_clone = Arc::clone(&gates_clone);
+                    let gates = other_gates_clone.lock().unwrap().last().cloned();
+                    let last = gates.as_ref().unwrap().as_ref().unwrap();
+
+                    'inner: for i in 0..3 {
+                        if other_gates_clone.lock().unwrap().len() == 2 {
+                            break 'inner;
+                        }
+
+                        let (new_x, new_y) = grid.get_random_position();
+
+                        if i == 2 {
+                            other_gates_clone.lock().unwrap().push(Some(Gate { x: new_x, y: new_y, used: false }));
+                            break 'inner;
+                        }
+                        
+                        if (last.x.abs() + last.y.abs()) - (new_x.abs() + new_y.abs()) < (board.config.config.board.board_block_length as f64 / 2.0).abs().ceil() {
+                            continue;
+                        }
+
+                        other_gates_clone.lock().unwrap().push(Some(Gate { x: new_x, y: new_y, used: false }));
+                    }
                 }
+                
             });
         }).unwrap();
 
-        let gate_a = gates.lock().unwrap()[0].unwrap().clone();
-        let gate_b = gates.lock().unwrap()[1].unwrap().clone();
-
-        Portal { gate_a, gate_b, next: Some(0) }
-    }
-}
-
-impl Iterator for Portal {
-    type Item = Gate;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.next {
-            Some(n) => {
-                self.next = Some(n + 1);
-
-                match n {
-                    0 => Some(self.gate_a),
-                    1 => Some(self.gate_b),
-                    _ => None
-                }
-            }
-            None => {
-                self.next = Some(0);
-
-                None
-            }
+        Portal {
+            gates: gates
+                .clone()
+                .lock()
+                .unwrap()
+                .drain(..)
+                .map(|gate|Arc::new(Mutex::new(gate.unwrap().clone())))
+                .collect(),
+            next: Some(0),
         }
+    }
+
+    pub fn is_used(&self, mut portal: Option<Portal>) -> bool {
+        portal
+            .as_mut()
+            .unwrap()
+            .gates
+            .iter()
+            .filter(|gate| gate.lock().unwrap().used)
+            .count() > 0
     }
 }
