@@ -1,4 +1,7 @@
 use crate::board_controller::BoardController;
+use crate::config::GlobalConfig;
+use crate::game_mode::Mode;
+use crate::portal::Portal;
 use crate::score::Score;
 use crate::snake::Snake;
 
@@ -6,8 +9,6 @@ use piston_window::types::Color;
 use piston_window::*;
 use std::sync::Arc;
 use gfx_device_gl::Device;
-use crate::config::GlobalConfig;
-use crate::portal::Portal;
 
 
 pub struct BoardViewSettings {
@@ -118,7 +119,9 @@ impl BoardView {
             graphics,
         );
 
-        self.draw_gates(controller.board.portal.as_mut().unwrap(), context, graphics);
+        if controller.board.game_mode.mode == Mode::Portal {
+            self.draw_gates(controller.board.portal.as_mut().unwrap(), context, graphics);
+        }
     }
 
     fn draw_grid(&self, context: &Context, graphics: &mut G2d) {

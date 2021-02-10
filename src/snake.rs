@@ -162,7 +162,6 @@ impl Snake {
         for point in &self.body {
             if index > ((1.0 / self.frame_handler.get_move_distance()) / 2.0).ceil() as u32 {
                 if (point.x, point.y) == (*x, *y) {
-
                     return true;
                 }
             }
@@ -320,7 +319,7 @@ impl FrameHandler {
     }
 
     pub fn get_move_distance(&self) -> f64 {
-        (self.config.computed_config.block_size  / &self.config.computed_config.fps) * &self.config.computed_config.move_delay
+        (self.config.computed_config.block_size / &self.config.computed_config.fps) * &self.config.computed_config.move_delay
     }
 }
 

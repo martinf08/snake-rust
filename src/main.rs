@@ -33,7 +33,7 @@ fn main() {
     let board = Board::new(
         config.clone(),
         Arc::new(GameMode::new(config.clone())),
-        None
+        None,
     );
 
     let mut board_controller = BoardController::new(board, Score::new());
