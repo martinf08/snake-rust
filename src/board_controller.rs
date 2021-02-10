@@ -39,7 +39,7 @@ impl BoardController {
                 self.board = Board::new(
                     self.board.config.clone(),
                     self.board.game_mode.clone(),
-                    Some(Portal::new(&self.board))
+                    Some(Portal::new(&self.board)),
                 );
             }
 
@@ -63,7 +63,6 @@ impl BoardController {
             }
 
             if self.board.game_mode.mode == Mode::Portal {
-
                 if let Some(_jump) = self.board.snake.jump {
                     if !self.board.snake.in_gate() {
                         self.board.portal = Some(Portal::new(&self.board));
@@ -73,7 +72,6 @@ impl BoardController {
 
                 if !self.board.portal.as_ref().unwrap().is_used(self.board.portal.clone())
                     && self.board.snake.next_move_take_gate(self.board.portal.as_mut().unwrap()) {
-
                     self.board.snake.teleport(self.board.portal.clone().unwrap());
                 }
             }

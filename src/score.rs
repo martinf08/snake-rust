@@ -22,7 +22,6 @@ impl Score {
     pub fn update_score(&mut self) {
         self.scores.get_mut("current").unwrap().count += 1;
         if self.scores.get("current").unwrap().count > self.scores.get("best").unwrap().count {
-
             self.scores.get_mut("best").unwrap().count = self.scores.get("current").unwrap().count;
         }
     }

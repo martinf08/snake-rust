@@ -13,7 +13,6 @@ pub struct Gate {
 #[derive(Clone)]
 pub struct Portal {
     pub gates: Vec<Arc<Mutex<Gate>>>,
-    pub next: Option<u32>,
 }
 
 impl Portal {
@@ -57,7 +56,7 @@ impl Portal {
                             other_gates_clone.lock().unwrap().push(Some(Gate { x: new_x, y: new_y, used: false }));
                             break 'inner;
                         }
-                        
+
                         if (last.x.abs() + last.y.abs()) - (new_x.abs() + new_y.abs()) < (board.config.config.board.board_block_length as f64 / 2.0).abs().ceil() {
                             continue;
                         }
@@ -65,7 +64,6 @@ impl Portal {
                         other_gates_clone.lock().unwrap().push(Some(Gate { x: new_x, y: new_y, used: false }));
                     }
                 }
-                
             });
         }).unwrap();
 
@@ -75,9 +73,8 @@ impl Portal {
                 .lock()
                 .unwrap()
                 .drain(..)
-                .map(|gate|Arc::new(Mutex::new(gate.unwrap().clone())))
-                .collect(),
-            next: Some(0),
+                .map(|gate| Arc::new(Mutex::new(gate.unwrap().clone())))
+                .collect()
         }
     }
 
