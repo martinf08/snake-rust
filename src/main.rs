@@ -47,11 +47,22 @@ fn main() {
     while let Some(event) = &window.next() {
         board_controller.event(event);
 
+        if event.update_args().is_some() {
+            window.set_title(if board_controller.won {
+                "Snake - board complete! R to restart"
+            } else if board_controller.paused {
+                "Snake - paused (Space to resume)"
+            } else {
+                "Snake - arrows to move | Space to pause | R to restart"
+            }.into());
+        }
+
         if let Some(args) = event.render_args() {
             frame_delta += args.ext_dt;
             if frame_delta < 1.0 / &config.computed_config.fps {
                 continue;
             }
+            frame_delta %= 1.0 / config.computed_config.fps;
 
             window.draw_2d(event, |context, graphics, device| {
                 board_view.draw(&mut board_controller, &context, graphics, device, &args)
@@ -59,3 +70,6 @@ fn main() {
         }
     }
 }
+
+#[cfg(test)]
+mod tests;

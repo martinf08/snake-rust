@@ -1,13 +1,13 @@
-use std::collections::{HashMap};
+use std::collections::BTreeMap;
 
 pub struct Score {
     pub title: String,
-    pub scores: HashMap<String, ScoreElement>,
+    pub scores: BTreeMap<String, ScoreElement>,
 }
 
 impl Score {
     pub fn new() -> Score {
-        let mut scores: HashMap<String, ScoreElement> = HashMap::new();
+        let mut scores: BTreeMap<String, ScoreElement> = BTreeMap::new();
 
         for title in vec!["current", "best", "death"].drain(..) {
             scores.insert(String::from(title), ScoreElement::new(String::from(title)));

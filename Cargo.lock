@@ -1240,7 +1240,6 @@ dependencies = [
 name = "snake-rust"
 version = "0.7.0"
 dependencies = [
- "crossbeam-utils",
  "gfx_device_gl",
  "piston_window",
  "rand",

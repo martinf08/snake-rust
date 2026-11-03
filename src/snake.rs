@@ -1,5 +1,4 @@
 use crate::config::GlobalConfig;
-use crate::food::Food;
 use crate::game_mode::{GameMode, Wall};
 use crate::portal::{Portal, Gate};
 
@@ -171,19 +170,13 @@ impl Snake {
         false
     }
 
-    pub fn update(&mut self, delta_time: f64) {
-        self.frame_handler.current_delta += delta_time;
-
-        if self.frame_handler.current_delta < (1.0 / &self.frame_handler.config.computed_config.fps) {
-            return;
-        }
-
-        self.frame_handler.current_delta = 0.0;
+    pub fn update(&mut self, _delta_time: f64) {
 
         match self.jump.as_mut() {
             Some(jump) => {
                 if let Some(point) = jump.gate_head {
                     self.body.push_front(point);
+                    self.body.pop_back();
                     jump.gate_head = None;
                     jump.is_jumping = true;
                     return;
@@ -236,17 +229,10 @@ impl Snake {
         }
     }
 
-    pub fn next_move_eat(&self, food: &Food) -> bool {
-        let Point { x, y } = self.next_head.unwrap();
-
-        return (x.round(), y.round()) == (food.x, food.y);
-    }
-
     pub fn next_move_take_gate(&self, portal: &mut Portal) -> bool {
         let Point { x, y } = self.next_head.unwrap();
 
-        for gate in portal.gates.iter() {
-            let mut gate = gate.lock().unwrap();
+        for gate in portal.gates.iter_mut() {
             if (x.round(), y.round()) != (gate.x, gate.y) {
                 continue;
             }
@@ -262,10 +248,8 @@ impl Snake {
     pub fn teleport(&mut self, portal: Portal) {
         let Gate { x, y, .. } = *portal.gates
             .iter()
-            .filter(|gate| !gate.lock().unwrap().used)
+            .filter(|gate| !gate.used)
             .last()
-            .unwrap()
-            .lock()
             .unwrap();
 
         self.jump = Some(Jump::new(Point { x, y }));
@@ -276,7 +260,7 @@ impl Snake {
         let max_distance = *board_size as f64 / *block_size as f64 - 1.0;
 
         match self.game_mode.wall {
-            Wall::Fluid => self.overlap_tail(&x, &y) && (x != max_distance && y != max_distance),
+            Wall::Fluid => self.overlap_tail(&x, &y),
             Wall::Solid => self.overlap_tail(&x, &y) || x < 0.0 || x > max_distance || y < 0.0 || y > max_distance
         }
     }
@@ -307,14 +291,12 @@ impl Snake {
 #[derive(Clone)]
 pub struct FrameHandler {
     pub config: Arc<GlobalConfig>,
-    current_delta: f64,
 }
 
 impl FrameHandler {
     pub fn new(config: Arc<GlobalConfig>) -> FrameHandler {
         FrameHandler {
             config,
-            current_delta: 0.0,
         }
     }
 

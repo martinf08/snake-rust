@@ -120,7 +120,9 @@ impl BoardView {
         );
 
         if controller.board.game_mode.mode == Mode::Portal {
-            self.draw_gates(controller.board.portal.as_mut().unwrap(), context, graphics);
+            if let Some(portal) = controller.board.portal.as_mut() {
+                self.draw_gates(portal, context, graphics);
+            }
         }
     }
 
@@ -184,13 +186,11 @@ impl BoardView {
     }
 
     pub fn draw_scores(&mut self, score: &Score, context: &Context, graphics: &mut G2d, device: &mut Device) {
-        let end_x = *self.score_settings.board_size + *self.score_settings.score_size;
-
         rectangle(
             self.score_settings.background_color,
             [*self.score_settings.board_size,
                 0.0,
-                end_x,
+                *self.score_settings.score_size,
                 *self.score_settings.board_size
             ],
             context.transform,
@@ -238,8 +238,6 @@ impl BoardView {
                 1 => Some(self.board_settings.gate_b_color),
                 _ => None
             };
-
-            let gate = gate.lock().unwrap();
 
             self.draw_ellipse(color.unwrap(), gate.x, gate.y, context, graphics);
         }
