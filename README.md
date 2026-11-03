@@ -9,6 +9,9 @@ Snake game coded in rust
 ## Run the project
 Use a stable Rust toolchain. Run from the repository root so `Config.toml`
 and `assets/lcd-solid.ttf` can be found.
+The graphics dependency targets [Piston Window 0.132](https://docs.rs/piston_window/0.132.0/piston_window/),
+retaining the original OpenGL renderer while updating its window backend for
+modern platforms (including Apple Silicon).
 <pre>cargo run</pre>
 
 ## Controls

@@ -2,7 +2,7 @@ name: quality
 
 on:
   push:
-    branches: [main, 'fix/**']
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -10,7 +10,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install native dependencies
         run: sudo apt-get update && sudo apt-get install -y libasound2-dev libudev-dev libx11-dev libxi-dev libgl1-mesa-dev
       - name: Install Rust quality tools
