@@ -1,11 +1,10 @@
 use crate::config::GlobalConfig;
 use crate::game_mode::{GameMode, Wall};
-use crate::portal::{Portal, Gate};
+use crate::portal::{Gate, Portal};
 
-use std::collections::LinkedList;
 use piston_window::Key;
+use std::collections::LinkedList;
 use std::sync::Arc;
-
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum Direction {
@@ -54,12 +53,10 @@ pub struct Snake {
     pub body: LinkedList<Point>,
     direction: Direction,
     request_direction: Direction,
-    request_position: Option<(f64, f64)>,
     pub just_eat: bool,
     pub next_head: Option<Point>,
     pub frame_handler: FrameHandler,
     blocks_to_add: u32,
-    middle_block_passed: bool,
     game_mode: Arc<GameMode>,
     pub jump: Option<Jump>,
 }
@@ -76,12 +73,10 @@ impl Snake {
             body,
             direction: Direction::Right,
             request_direction: Direction::Right,
-            request_position: None,
             just_eat: false,
             next_head: None,
             frame_handler,
             blocks_to_add: 0,
-            middle_block_passed: false,
             game_mode: game_mode.clone(),
             jump: None,
         }
@@ -96,14 +91,26 @@ impl Snake {
         let (head_x, head_y) = self.head_position();
 
         let move_distance = self.frame_handler.get_move_distance();
-        let max_distance = *board_size as f64 / *block_size as f64 - 1.0;
+        let max_distance = *board_size / *block_size - 1.0;
 
         match self.game_mode.wall {
             Wall::Solid => match self.direction {
-                Direction::Up => Point { x: head_x, y: head_y - move_distance },
-                Direction::Down => Point { x: head_x, y: head_y + move_distance },
-                Direction::Left => Point { x: head_x - move_distance, y: head_y },
-                Direction::Right => Point { x: head_x + move_distance, y: head_y },
+                Direction::Up => Point {
+                    x: head_x,
+                    y: head_y - move_distance,
+                },
+                Direction::Down => Point {
+                    x: head_x,
+                    y: head_y + move_distance,
+                },
+                Direction::Left => Point {
+                    x: head_x - move_distance,
+                    y: head_y,
+                },
+                Direction::Right => Point {
+                    x: head_x + move_distance,
+                    y: head_y,
+                },
             },
             Wall::Fluid => match self.direction {
                 Direction::Up => {
@@ -113,7 +120,10 @@ impl Snake {
                         head_y - move_distance
                     };
 
-                    Point { x: head_x, y: next_y }
+                    Point {
+                        x: head_x,
+                        y: next_y,
+                    }
                 }
                 Direction::Down => {
                     let next_y = if head_y + move_distance > max_distance {
@@ -122,7 +132,10 @@ impl Snake {
                         head_y + move_distance
                     };
 
-                    Point { x: head_x, y: next_y }
+                    Point {
+                        x: head_x,
+                        y: next_y,
+                    }
                 }
                 Direction::Left => {
                     let next_x = if head_x - move_distance < 0.0 {
@@ -131,7 +144,10 @@ impl Snake {
                         head_x - move_distance
                     };
 
-                    Point { x: next_x, y: head_y }
+                    Point {
+                        x: next_x,
+                        y: head_y,
+                    }
                 }
                 Direction::Right => {
                     let next_x = if head_x + move_distance > max_distance {
@@ -140,9 +156,12 @@ impl Snake {
                         head_x + move_distance
                     };
 
-                    Point { x: next_x, y: head_y }
+                    Point {
+                        x: next_x,
+                        y: head_y,
+                    }
                 }
-            }
+            },
         }
     }
 
@@ -152,67 +171,46 @@ impl Snake {
             Key::Down => Direction::Down,
             Key::Left => Direction::Left,
             Key::Right => Direction::Right,
-            _ => self.request_direction.clone()
+            _ => self.request_direction,
         };
     }
 
     pub fn overlap_tail(&self, x: &f64, y: &f64) -> bool {
-        let mut index = 0;
-        for point in &self.body {
-            if index > ((1.0 / self.frame_handler.get_move_distance()) / 2.0).ceil() as u32 {
-                if (point.x, point.y) == (*x, *y) {
-                    return true;
-                }
+        for (index, point) in self.body.iter().enumerate() {
+            if index > ((1.0 / self.frame_handler.get_move_distance()) / 2.0).ceil() as usize
+                && (point.x, point.y) == (*x, *y)
+            {
+                return true;
             }
-            index += 1;
         }
 
         false
     }
 
     pub fn update(&mut self, _delta_time: f64) {
-
-        match self.jump.as_mut() {
-            Some(jump) => {
-                if let Some(point) = jump.gate_head {
-                    self.body.push_front(point);
-                    self.body.pop_back();
-                    jump.gate_head = None;
-                    jump.is_jumping = true;
-                    return;
-                }
-            }
-            None => ()
-        }
-
-
-        let mut need_new_head = true;
-
-        if self.direction.opposite() != self.request_direction {
-            if let Some((past_head_x, past_head_y)) = self.request_position {
-                let (head_x, head_y) = self.head_position();
-
-                if head_x.round() != past_head_x.round() || head_y.round() != past_head_y.round() {
-                    self.middle_block_passed = true
-                }
-
-                if self.at_ceil_edge((&head_x, &head_y)) && self.middle_block_passed {
-                    self.middle_block_passed = false;
-                    need_new_head = false;
-                    self.request_position = None;
-
-                    self.body.push_front(Point { x: head_x.round(), y: head_y.round() });
-                    self.direction = self.request_direction;
-                }
+        if let Some(jump) = self.jump.as_mut() {
+            if let Some(point) = jump.gate_head {
+                self.body.push_front(point);
+                self.body.pop_back();
+                jump.gate_head = None;
+                jump.is_jumping = true;
+                return;
             }
         }
 
-        if self.direction.opposite() != self.request_direction {
-            self.request_position = Some(self.head_position());
-        }
-
-        if need_new_head {
-            self.body.push_front(self.next_head.unwrap().clone());
+        let (head_x, head_y) = self.head_position();
+        if self.direction != self.request_direction
+            && self.direction.opposite() != self.request_direction
+            && self.at_ceil_edge((&head_x, &head_y))
+        {
+            // Turn only at a cell boundary; do not snap on every straight step.
+            self.body.push_front(Point {
+                x: head_x.round(),
+                y: head_y.round(),
+            });
+            self.direction = self.request_direction;
+        } else {
+            self.body.push_front(self.next_head.unwrap());
         }
 
         if self.just_eat {
@@ -222,9 +220,7 @@ impl Snake {
 
         if self.blocks_to_add > 0 {
             self.blocks_to_add -= 1;
-
-            return;
-        } else if self.blocks_to_add == 0 {
+        } else {
             self.body.pop_back().unwrap();
         }
     }
@@ -246,27 +242,32 @@ impl Snake {
     }
 
     pub fn teleport(&mut self, portal: Portal) {
-        let Gate { x, y, .. } = *portal.gates
-            .iter()
-            .filter(|gate| !gate.used)
-            .last()
-            .unwrap();
+        let Gate { x, y, .. } = *portal.gates.iter().find(|gate| !gate.used).unwrap();
 
         self.jump = Some(Jump::new(Point { x, y }));
     }
 
     pub fn is_dead(&self, board_size: &f64, block_size: &f64) -> bool {
         let (x, y) = self.head_position();
-        let max_distance = *board_size as f64 / *block_size as f64 - 1.0;
+        let max_distance = *board_size / *block_size - 1.0;
 
         match self.game_mode.wall {
             Wall::Fluid => self.overlap_tail(&x, &y),
-            Wall::Solid => self.overlap_tail(&x, &y) || x < 0.0 || x > max_distance || y < 0.0 || y > max_distance
+            Wall::Solid => {
+                self.overlap_tail(&x, &y)
+                    || x < 0.0
+                    || x > max_distance
+                    || y < 0.0
+                    || y > max_distance
+            }
         }
     }
 
     pub fn in_gate(&mut self) -> bool {
-        let Point { x: tail_x, y: tail_y } = self.body.back().unwrap();
+        let Point {
+            x: tail_x,
+            y: tail_y,
+        } = self.body.back().unwrap();
         let (gate_x, gate_y) = self.jump.unwrap().gate_end_position.unwrap();
 
         if self.jump.unwrap().is_jumping && (tail_x, tail_y) == (&gate_x, &gate_y) {
@@ -278,12 +279,20 @@ impl Snake {
 
     fn at_ceil_edge(&self, (head_x, head_y): (&f64, &f64)) -> bool {
         match self.direction {
-            Direction::Up => (head_y - self.frame_handler.get_move_distance()).trunc() != head_y.trunc()
-                || (head_y > &0.0 && head_y <= &self.frame_handler.get_move_distance()),
-            Direction::Down => (head_y + self.frame_handler.get_move_distance()).trunc() != head_y.trunc(),
-            Direction::Left => (head_x - self.frame_handler.get_move_distance()).trunc() != head_x.trunc()
-                || (head_x > &0.0 && head_x <= &self.frame_handler.get_move_distance()),
-            Direction::Right => (head_x + self.frame_handler.get_move_distance()).trunc() != head_x.trunc(),
+            Direction::Up => {
+                (head_y - self.frame_handler.get_move_distance()).trunc() != head_y.trunc()
+                    || (head_y > &0.0 && head_y <= &self.frame_handler.get_move_distance())
+            }
+            Direction::Down => {
+                (head_y + self.frame_handler.get_move_distance()).trunc() != head_y.trunc()
+            }
+            Direction::Left => {
+                (head_x - self.frame_handler.get_move_distance()).trunc() != head_x.trunc()
+                    || (head_x > &0.0 && head_x <= &self.frame_handler.get_move_distance())
+            }
+            Direction::Right => {
+                (head_x + self.frame_handler.get_move_distance()).trunc() != head_x.trunc()
+            }
         }
     }
 }
@@ -295,13 +304,12 @@ pub struct FrameHandler {
 
 impl FrameHandler {
     pub fn new(config: Arc<GlobalConfig>) -> FrameHandler {
-        FrameHandler {
-            config,
-        }
+        FrameHandler { config }
     }
 
     pub fn get_move_distance(&self) -> f64 {
-        (self.config.computed_config.block_size / &self.config.computed_config.fps) * &self.config.computed_config.move_delay
+        (self.config.computed_config.block_size / self.config.computed_config.fps)
+            * self.config.computed_config.move_delay
     }
 }
 

@@ -21,7 +21,12 @@ impl BoardController {
         if board.game_mode.mode == Mode::Portal {
             board.portal = Portal::new(&board);
         }
-        BoardController { board, score, paused: false, won: false }
+        BoardController {
+            board,
+            score,
+            paused: false,
+            won: false,
+        }
     }
 
     pub fn event<E: GenericEvent>(&mut self, e: &E) {
@@ -39,7 +44,11 @@ impl BoardController {
 
     pub fn restart(&mut self) {
         self.score.reset();
-        let board = Board::new(self.board.config.clone(), self.board.game_mode.clone(), None);
+        let board = Board::new(
+            self.board.config.clone(),
+            self.board.game_mode.clone(),
+            None,
+        );
         let score = std::mem::replace(&mut self.score, Score::new());
         *self = Self::new(board, score);
     }
@@ -54,7 +63,9 @@ impl BoardController {
         while self.board.current_delta + f64::EPSILON >= step {
             self.board.current_delta -= step;
             self.tick(step);
-            if self.won { break; }
+            if self.won {
+                break;
+            }
         }
     }
 
@@ -102,10 +113,13 @@ impl BoardController {
     }
 
     fn available_food(board: &Board) -> Option<Food> {
-        let gates = board.portal.as_ref().map(|portal| {
-            portal.gates.iter().cloned().map(Some).collect()
-        });
-        board.grid.clone()
+        let gates = board
+            .portal
+            .as_ref()
+            .map(|portal| portal.gates.iter().cloned().map(Some).collect());
+        board
+            .grid
+            .clone()
             .remove_occupied_positions(board.snake.body.clone(), &board.food, gates)
             .get_random_position()
             .map(|(x, y)| Food { x, y })

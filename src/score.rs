@@ -40,9 +40,6 @@ pub struct ScoreElement {
 
 impl ScoreElement {
     pub fn new(title: String) -> ScoreElement {
-        ScoreElement {
-            title,
-            count: 0,
-        }
+        ScoreElement { title, count: 0 }
     }
 }

@@ -2,12 +2,11 @@ use crate::config::GlobalConfig;
 use crate::food::Food;
 use crate::game_mode::GameMode;
 use crate::portal::{Gate, Portal};
-use crate::snake::{Snake, Point, FrameHandler};
+use crate::snake::{FrameHandler, Point, Snake};
 
 use rand::seq::SliceRandom;
 use std::collections::LinkedList;
 use std::sync::Arc;
-
 
 pub struct Board {
     pub config: Arc<GlobalConfig>,
@@ -20,7 +19,11 @@ pub struct Board {
 }
 
 impl Board {
-    pub fn new(config: Arc<GlobalConfig>, game_mode: Arc<GameMode>, portal: Option<Portal>) -> Board {
+    pub fn new(
+        config: Arc<GlobalConfig>,
+        game_mode: Arc<GameMode>,
+        portal: Option<Portal>,
+    ) -> Board {
         Board {
             config: config.clone(),
             snake: Snake::new(
@@ -43,7 +46,7 @@ impl Board {
 
 #[derive(Clone)]
 pub struct Grid {
-    pub list: Vec<(f64, f64)>
+    pub list: Vec<(f64, f64)>,
 }
 
 impl Grid {
@@ -59,11 +62,22 @@ impl Grid {
         Grid { list }
     }
 
-    pub fn remove_occupied_positions(mut self, body: LinkedList<Point>, food: &Food, gates: Option<Vec<Option<Gate>>>) -> Grid {
+    pub fn remove_occupied_positions(
+        mut self,
+        body: LinkedList<Point>,
+        food: &Food,
+        gates: Option<Vec<Option<Gate>>>,
+    ) -> Grid {
         self.list.retain(|&(x, y)| {
-            !body.iter().any(|point| (point.x.round(), point.y.round()) == (x, y))
+            !body
+                .iter()
+                .any(|point| (point.x.round(), point.y.round()) == (x, y))
                 && (x, y) != (food.x, food.y)
-                && !gates.as_ref().into_iter().flatten().flatten()
+                && !gates
+                    .as_ref()
+                    .into_iter()
+                    .flatten()
+                    .flatten()
                     .any(|gate| (gate.x, gate.y) == (x, y))
         });
 

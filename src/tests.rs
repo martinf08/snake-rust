@@ -18,7 +18,10 @@ fn config(mode: &str, wall: &str, size: u32) -> Arc<GlobalConfig> {
 
 fn controller(mode: &str, wall: &str, size: u32) -> BoardController {
     let config = config(mode, wall, size);
-    BoardController::new(Board::new(config.clone(), Arc::new(GameMode::new(config)), None), Score::new())
+    BoardController::new(
+        Board::new(config.clone(), Arc::new(GameMode::new(config)), None),
+        Score::new(),
+    )
 }
 
 #[test]
@@ -34,8 +37,13 @@ fn occupied_grid_excludes_fractional_body_food_and_gates() {
     let mut body = LinkedList::new();
     body.push_back(Point { x: 1.1, y: 1.0 });
     let grid = Grid::new(&60.0, &20.0).remove_occupied_positions(
-        body, &Food { x: 2.0, y: 2.0 },
-        Some(vec![Some(Gate { x: 0.0, y: 0.0, used: false })]),
+        body,
+        &Food { x: 2.0, y: 2.0 },
+        Some(vec![Some(Gate {
+            x: 0.0,
+            y: 0.0,
+            used: false,
+        })]),
     );
     assert_eq!(grid.list.len(), 6);
     assert!(!grid.list.contains(&(1.0, 1.0)));
@@ -58,8 +66,10 @@ fn invalid_configurations_are_rejected() {
         ("level = 4", "level = 100"),
         ("'default'", "'unknown'"),
         ("'solid'", "'unknown'"),
-    ].iter() {
-        assert!(GlobalConfig::from_toml(&valid.replace(from, to)).is_err());
+    ]
+    .iter()
+    {
+        assert!(GlobalConfig::from_toml(&valid.replace(*from, *to)).is_err());
     }
     assert!(GlobalConfig::from_toml("broken toml").is_err());
 }
@@ -70,10 +80,18 @@ fn small_board_food_is_inside_grid_and_off_body() {
         let game = controller("portal", "fluid", 6);
         let food = game.board.food;
         assert!((0.0..6.0).contains(&food.x) && (0.0..6.0).contains(&food.y));
-        assert!(!game.board.snake.body.iter().any(|p| (p.x.round(), p.y.round()) == (food.x, food.y)));
+        assert!(!game
+            .board
+            .snake
+            .body
+            .iter()
+            .any(|p| (p.x.round(), p.y.round()) == (food.x, food.y)));
         let portal = game.board.portal.unwrap();
         assert_eq!(portal.gates.len(), 2);
-        assert_ne!((portal.gates[0].x, portal.gates[0].y), (portal.gates[1].x, portal.gates[1].y));
+        assert_ne!(
+            (portal.gates[0].x, portal.gates[0].y),
+            (portal.gates[1].x, portal.gates[1].y)
+        );
         assert!(portal.gates.iter().all(|g| (g.x, g.y) != (food.x, food.y)));
     }
 }
@@ -94,7 +112,9 @@ fn timing_keeps_remainder_and_matches_split_updates() {
     a.board.food = Food { x: 0.0, y: 0.0 };
     b.board.food = a.board.food;
     a.update(0.05);
-    for _ in 0..5 { b.update(0.01); }
+    for _ in 0..5 {
+        b.update(0.01);
+    }
     assert_eq!(a.board.snake.head_position(), b.board.snake.head_position());
     assert!((a.board.current_delta - b.board.current_delta).abs() < 1e-12);
     let before = b.board.snake.head_position();
@@ -109,7 +129,9 @@ fn pause_freezes_simulation_and_invalid_dt_is_ignored() {
     game.paused = true;
     game.update(1.0);
     game.paused = false;
-    for dt in [f64::NAN, f64::INFINITY, -1.0, 0.0].iter() { game.update(*dt); }
+    for dt in [f64::NAN, f64::INFINITY, -1.0, 0.0].iter() {
+        game.update(*dt);
+    }
     assert_eq!(before, game.board.snake.head_position());
 }
 
@@ -130,7 +152,9 @@ fn restart_preserves_best_and_does_not_add_default_mode_portals() {
 fn fluid_wall_does_not_disable_self_collision_at_board_edge() {
     let mut game = controller("default", "fluid", 20);
     game.board.snake.body.clear();
-    for _ in 0..12 { game.board.snake.body.push_back(Point { x: 19.0, y: 3.0 }); }
+    for _ in 0..12 {
+        game.board.snake.body.push_back(Point { x: 19.0, y: 3.0 });
+    }
     assert!(game.board.snake.is_dead(&400.0, &20.0));
 }
 
@@ -143,4 +167,100 @@ fn teleport_keeps_snake_length() {
     game.board.snake.teleport(portal);
     game.board.snake.update(1.0 / 60.0);
     assert_eq!(game.board.snake.body.len(), length);
+}
+
+#[test]
+fn steering_turns_without_reversing_or_growing() {
+    use piston_window::Key;
+    let mut game = controller("default", "fluid", 20);
+    game.board.food = Food { x: 0.0, y: 0.0 };
+    let length = game.board.snake.body.len();
+    game.board.snake.request_direction(Key::Left);
+    game.update(1.0 / 60.0);
+    assert!(game.board.snake.head_position().0 > 4.0);
+    game.board.snake.request_direction(Key::Down);
+    for _ in 0..20 {
+        game.update(1.0 / 60.0);
+    }
+    assert!(game.board.snake.head_position().1 > 4.0);
+    assert_eq!(game.board.snake.body.len(), length);
+}
+
+#[test]
+fn eating_scores_once_and_grows_without_spawning_on_gates() {
+    let mut game = controller("portal", "fluid", 20);
+    game.board.portal = Some(Portal {
+        gates: vec![
+            Gate {
+                x: 10.0,
+                y: 10.0,
+                used: false,
+            },
+            Gate {
+                x: 11.0,
+                y: 10.0,
+                used: false,
+            },
+        ],
+    });
+    game.board.food = Food { x: 5.0, y: 4.0 };
+    let length = game.board.snake.body.len();
+    for _ in 0..10 {
+        game.update(1.0 / 60.0);
+    }
+    assert_eq!(game.score.scores["current"].count, 1);
+    assert!(game.board.snake.body.len() > length);
+    let food = game.board.food;
+    assert!(game
+        .board
+        .portal
+        .as_ref()
+        .unwrap()
+        .gates
+        .iter()
+        .all(|g| (g.x, g.y) != (food.x, food.y)));
+}
+
+#[test]
+fn completed_board_stops_until_restart() {
+    let mut game = controller("default", "fluid", 20);
+    game.board.grid.list = vec![(5.0, 4.0)];
+    game.board.food = Food { x: 5.0, y: 4.0 };
+    for _ in 0..10 {
+        game.update(1.0 / 60.0);
+    }
+    assert!(game.won);
+    assert_eq!(game.score.scores["current"].count, 1);
+    let before = game.board.snake.head_position();
+    game.update(0.25);
+    assert_eq!(before, game.board.snake.head_position());
+    game.restart();
+    assert!(!game.won);
+}
+
+#[test]
+fn optional_gates_do_not_prevent_food_generation_on_nearly_full_board() {
+    let mut game = controller("portal", "fluid", 20);
+    game.board.grid.list = vec![(5.0, 4.0), (10.0, 10.0), (11.0, 10.0)];
+    game.board.food = Food { x: 5.0, y: 4.0 };
+    game.board.portal = Some(Portal {
+        gates: vec![
+            Gate {
+                x: 10.0,
+                y: 10.0,
+                used: false,
+            },
+            Gate {
+                x: 11.0,
+                y: 10.0,
+                used: false,
+            },
+        ],
+    });
+    for _ in 0..5 {
+        game.update(1.0 / 60.0);
+    }
+    assert!(!game.won);
+    assert!(game.board.portal.is_none());
+    assert_eq!(game.board.food.y, 10.0);
 }

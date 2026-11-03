@@ -17,8 +17,8 @@ impl GlobalConfig {
     }
 
     pub fn load(path: &Path) -> Result<GlobalConfig, String> {
-        let contents = fs::read_to_string(path)
-            .map_err(|error| format!("{}: {}", path.display(), error))?;
+        let contents =
+            fs::read_to_string(path).map_err(|error| format!("{}: {}", path.display(), error))?;
         Self::from_toml(&contents)
     }
 
