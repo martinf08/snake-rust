@@ -69,7 +69,7 @@ fn invalid_configurations_are_rejected() {
     ]
     .iter()
     {
-        assert!(GlobalConfig::from_toml(&valid.replace(*from, *to)).is_err());
+        assert!(GlobalConfig::from_toml(&valid.replace(*from, to)).is_err());
     }
     assert!(GlobalConfig::from_toml("broken toml").is_err());
 }

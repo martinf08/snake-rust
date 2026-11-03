@@ -26,7 +26,7 @@ simulation; press R to play again. The window title shows pause and completion.
 ## Validation
 <pre>cargo fmt --all -- --check
 cargo test --locked
-cargo clippy --locked --all-targets</pre>
+cargo clippy --locked --all-targets -- -D warnings</pre>
 
 Configuration errors are reported before opening the window. Board length must
 be 6–256 cells, block size 1–1024 pixels, and total width at most 8192 pixels.
