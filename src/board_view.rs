@@ -5,11 +5,10 @@ use crate::portal::Portal;
 use crate::score::Score;
 use crate::snake::Snake;
 
+use gfx_device_gl::Device;
 use piston_window::types::Color;
 use piston_window::*;
 use std::sync::Arc;
-use gfx_device_gl::Device;
-
 
 pub struct BoardViewSettings {
     block_size: Arc<f64>,
@@ -113,21 +112,24 @@ impl BoardView {
         //Food
         self.draw_block(
             self.board_settings.food_color,
-            *&controller.board.food.x,
-            *&controller.board.food.y,
+            controller.board.food.x,
+            controller.board.food.y,
             context,
             graphics,
         );
 
         if controller.board.game_mode.mode == Mode::Portal {
-            self.draw_gates(controller.board.portal.as_mut().unwrap(), context, graphics);
+            if let Some(portal) = controller.board.portal.as_mut() {
+                self.draw_gates(portal, context, graphics);
+            }
         }
     }
 
     fn draw_grid(&self, context: &Context, graphics: &mut G2d) {
         for i in (0..=*self.grid_settings.board_size as usize)
             .rev()
-            .step_by(*self.grid_settings.block_size as usize) {
+            .step_by(*self.grid_settings.block_size as usize)
+        {
             let i = i as f64;
 
             //Horizontal
@@ -152,46 +154,75 @@ impl BoardView {
 
     fn draw_snake(&self, snake: &Snake, context: &Context, graphics: &mut G2d) {
         for point in &snake.body {
-            self.draw_block(self.board_settings.snake_color, point.x, point.y, &context, graphics)
+            self.draw_block(
+                self.board_settings.snake_color,
+                point.x,
+                point.y,
+                context,
+                graphics,
+            )
         }
     }
 
     pub fn draw_block(&self, color: Color, x: f64, y: f64, context: &Context, graphics: &mut G2d) {
-        let gui_x = x as f64 * *self.board_settings.block_size;
-        let gui_y = y as f64 * *self.board_settings.block_size;
+        let gui_x = x * *self.board_settings.block_size;
+        let gui_y = y * *self.board_settings.block_size;
 
         rectangle(
             color,
-            [gui_x, gui_y, *self.board_settings.block_size, *self.board_settings.block_size],
+            [
+                gui_x,
+                gui_y,
+                *self.board_settings.block_size,
+                *self.board_settings.block_size,
+            ],
             context.transform,
             graphics,
         );
     }
 
-    pub fn draw_ellipse(&self, color: Color, x: f64, y: f64, context: &Context, graphics: &mut G2d) {
-        let gui_x = x as f64 * *self.board_settings.block_size;
-        let gui_y = y as f64 * *self.board_settings.block_size;
+    pub fn draw_ellipse(
+        &self,
+        color: Color,
+        x: f64,
+        y: f64,
+        context: &Context,
+        graphics: &mut G2d,
+    ) {
+        let gui_x = x * *self.board_settings.block_size;
+        let gui_y = y * *self.board_settings.block_size;
 
-        let ellipse_x_size = *self.board_settings.block_size / self.board_settings.gate_ellipse_x_ratio;
+        let ellipse_x_size =
+            *self.board_settings.block_size / self.board_settings.gate_ellipse_x_ratio;
         let fixed_x = gui_x + ((*self.board_settings.block_size - ellipse_x_size) / 2.0);
 
         ellipse(
             color,
-            [fixed_x, gui_y, ellipse_x_size, *self.board_settings.block_size],
+            [
+                fixed_x,
+                gui_y,
+                ellipse_x_size,
+                *self.board_settings.block_size,
+            ],
             context.transform,
             graphics,
         );
     }
 
-    pub fn draw_scores(&mut self, score: &Score, context: &Context, graphics: &mut G2d, device: &mut Device) {
-        let end_x = *self.score_settings.board_size + *self.score_settings.score_size;
-
+    pub fn draw_scores(
+        &mut self,
+        score: &Score,
+        context: &Context,
+        graphics: &mut G2d,
+        device: &mut Device,
+    ) {
         rectangle(
             self.score_settings.background_color,
-            [*self.score_settings.board_size,
+            [
+                *self.score_settings.board_size,
                 0.0,
-                end_x,
-                *self.score_settings.board_size
+                *self.score_settings.score_size,
+                *self.score_settings.board_size,
             ],
             context.transform,
             graphics,
@@ -200,30 +231,32 @@ impl BoardView {
         text(
             self.score_settings.title_color,
             self.score_settings.title_size,
-            &*score.title,
+            &score.title,
             &mut self.glyphs,
-            context.transform.trans(
-                &*self.score_settings.board_size + 20.0,
-                40.0,
-            ),
+            context
+                .transform
+                .trans(*self.score_settings.board_size + 20.0, 40.0),
             graphics,
-        ).unwrap();
+        )
+        .unwrap();
 
         let mut i = 2.0;
-        for (_k, mut score_element) in score.scores
-            .clone()
-            .into_iter() {
+        for (_k, mut score_element) in score.scores.clone().into_iter() {
             text(
                 self.score_settings.title_color,
                 self.score_settings.title_size - 10,
-                &*format!("{} : {}", ascii_uc_first(&mut score_element.title), &score_element.count),
-                &mut self.glyphs,
-                context.transform.trans(
-                    &*self.score_settings.board_size + 10.0,
-                    i * 60.0,
+                &format!(
+                    "{} : {}",
+                    ascii_uc_first(&mut score_element.title),
+                    score_element.count
                 ),
+                &mut self.glyphs,
+                context
+                    .transform
+                    .trans(*self.score_settings.board_size + 10.0, i * 60.0),
                 graphics,
-            ).unwrap();
+            )
+            .unwrap();
 
             i += 1.0;
         }
@@ -236,10 +269,8 @@ impl BoardView {
             let color = match i {
                 0 => Some(self.board_settings.gate_a_color),
                 1 => Some(self.board_settings.gate_b_color),
-                _ => None
+                _ => None,
             };
-
-            let gate = gate.lock().unwrap();
 
             self.draw_ellipse(color.unwrap(), gate.x, gate.y, context, graphics);
         }

@@ -1,8 +1,5 @@
 use crate::board::Board;
 
-use crossbeam_utils::thread;
-use std::sync::{Arc, Mutex};
-
 #[derive(Clone)]
 pub struct Gate {
     pub x: f64,
@@ -12,79 +9,40 @@ pub struct Gate {
 
 #[derive(Clone)]
 pub struct Portal {
-    pub gates: Vec<Arc<Mutex<Gate>>>,
+    pub gates: Vec<Gate>,
 }
 
 impl Portal {
-    pub fn new(board: &Board) -> Portal {
-        let local_self = Arc::new(board);
-
-        let gates: Arc<Mutex<Vec<Option<Gate>>>> = Arc::new(Mutex::new(Vec::new()));
-        let gates_clone = Arc::clone(&gates);
-
-        thread::scope(|s| {
-            s.spawn(move |_| {
-                while gates_clone.lock().unwrap().len() < 2 {
-                    let grid = local_self
-                        .grid
-                        .clone()
-                        .remove_occupied_positions(
-                            local_self.snake.body.clone(),
-                            &local_self.food,
-                            Some(gates_clone.lock().unwrap().clone()),
-                        );
-
-                    if gates_clone.lock().unwrap().len() == 0 {
-                        let (x, y) = grid.get_random_position();
-                        gates_clone.lock().unwrap().push(Some(Gate { x, y, used: false }));
-
-                        continue;
-                    }
-
-                    let other_gates_clone = Arc::clone(&gates_clone);
-                    let gates = other_gates_clone.lock().unwrap().last().cloned();
-                    let last = gates.as_ref().unwrap().as_ref().unwrap();
-
-                    'inner: for i in 0..3 {
-                        if other_gates_clone.lock().unwrap().len() == 2 {
-                            break 'inner;
-                        }
-
-                        let (new_x, new_y) = grid.get_random_position();
-
-                        if i == 2 {
-                            other_gates_clone.lock().unwrap().push(Some(Gate { x: new_x, y: new_y, used: false }));
-                            break 'inner;
-                        }
-
-                        if (last.x.abs() + last.y.abs()) - (new_x.abs() + new_y.abs()) < (board.config.config.board.board_block_length as f64 / 2.0).abs().ceil() {
-                            continue;
-                        }
-
-                        other_gates_clone.lock().unwrap().push(Some(Gate { x: new_x, y: new_y, used: false }));
-                    }
-                }
-            });
-        }).unwrap();
-
-        Portal {
-            gates: gates
-                .clone()
-                .lock()
-                .unwrap()
-                .drain(..)
-                .map(|gate| Arc::new(Mutex::new(gate.unwrap().clone())))
-                .collect()
-        }
+    /// A nearly full board may not have room for two gates.
+    pub fn new(board: &Board) -> Option<Portal> {
+        let mut grid = board.grid.clone().remove_occupied_positions(
+            board.snake.body.clone(),
+            &board.food,
+            None,
+        );
+        let (x, y) = grid.get_random_position()?;
+        grid.list.retain(|&point| point != (x, y));
+        let minimum_distance = board.config.config.board.board_block_length as f64 / 2.0;
+        let mut distant = grid.clone();
+        distant.list.retain(|&(other_x, other_y)| {
+            (x - other_x).abs() + (y - other_y).abs() >= minimum_distance
+        });
+        let (other_x, other_y) = distant
+            .get_random_position()
+            .or_else(|| grid.get_random_position())?;
+        Some(Portal {
+            gates: vec![
+                Gate { x, y, used: false },
+                Gate {
+                    x: other_x,
+                    y: other_y,
+                    used: false,
+                },
+            ],
+        })
     }
 
-    pub fn is_used(&self, mut portal: Option<Portal>) -> bool {
-        portal
-            .as_mut()
-            .unwrap()
-            .gates
-            .iter()
-            .filter(|gate| gate.lock().unwrap().used)
-            .count() > 0
+    pub fn is_used(&self) -> bool {
+        self.gates.iter().any(|gate| gate.used)
     }
 }

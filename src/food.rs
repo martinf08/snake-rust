@@ -6,9 +6,6 @@ pub struct Food {
 
 impl Food {
     pub fn new() -> Food {
-        Food {
-            x: 15.0,
-            y: 15.0,
-        }
+        Food { x: 15.0, y: 15.0 }
     }
 }

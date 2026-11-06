@@ -15,8 +15,23 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v7
     - name: Build
-      run: cargo build --verbose
+      run: cargo build --locked --verbose
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test --locked --verbose
+    - name: Build Windows application
+      run: cargo build --release --locked
+    - name: Package Windows application
+      shell: pwsh
+      run: |
+        New-Item -ItemType Directory -Path dist/snake-windows
+        Copy-Item target/release/snake-rust.exe dist/snake-windows/
+        Copy-Item Config.toml, README.md dist/snake-windows/
+        Copy-Item assets dist/snake-windows/ -Recurse
+    - name: Upload Windows application
+      uses: actions/upload-artifact@v7
+      with:
+        name: snake-windows
+        path: dist/snake-windows/
+        if-no-files-found: error

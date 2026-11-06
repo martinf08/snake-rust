@@ -1,6 +1,5 @@
 use serde::Deserialize;
-use std::fs::File;
-use std::io::Read;
+use std::fs;
 use std::path::Path;
 use std::sync::Arc;
 
@@ -11,11 +10,26 @@ pub struct GlobalConfig {
 
 impl GlobalConfig {
     pub fn new() -> GlobalConfig {
-        let config = Arc::new(Config::new());
-        GlobalConfig {
+        Self::load(Path::new("./Config.toml")).unwrap_or_else(|error| {
+            eprintln!("Configuration error: {}", error);
+            std::process::exit(1);
+        })
+    }
+
+    pub fn load(path: &Path) -> Result<GlobalConfig, String> {
+        let contents =
+            fs::read_to_string(path).map_err(|error| format!("{}: {}", path.display(), error))?;
+        Self::from_toml(&contents)
+    }
+
+    pub fn from_toml(contents: &str) -> Result<GlobalConfig, String> {
+        let config: Config = toml::from_str(contents).map_err(|error| error.to_string())?;
+        config.validate()?;
+        let config = Arc::new(config);
+        Ok(GlobalConfig {
             computed_config: ComputedConfig::new(config.clone()),
             config: config.clone(),
-        }
+        })
     }
 }
 
@@ -60,12 +74,26 @@ pub struct Board {
 }
 
 impl Config {
-    pub fn new() -> Config {
-        let mut file = File::open(Path::new("./Config.toml")).unwrap();
-        let mut contents = String::new();
-
-        file.read_to_string(&mut contents).unwrap();
-
-        toml::from_str(&*contents).unwrap()
+    fn validate(&self) -> Result<(), String> {
+        if !(6..=256).contains(&self.board.board_block_length) {
+            return Err("board_block_length must be between 6 and 256".into());
+        }
+        if self.board.block_size == 0 || self.board.block_size > 1024 {
+            return Err("block_size must be between 1 and 1024".into());
+        }
+        if self.board.block_size * self.board.board_block_length > 8192 {
+            return Err("board dimensions must not exceed 8192 pixels".into());
+        }
+        let distance = self.board.block_size as f64 * self.game.level as f64 / 600.0;
+        if distance <= 0.0 || distance > 1.0 {
+            return Err("level must produce a movement distance in (0, 1] per tick".into());
+        }
+        if !matches!(self.game.mode.as_str(), "default" | "portal") {
+            return Err("mode must be 'default' or 'portal'".into());
+        }
+        if !matches!(self.game.wall.as_str(), "solid" | "fluid") {
+            return Err("wall must be 'solid' or 'fluid'".into());
+        }
+        Ok(())
     }
 }

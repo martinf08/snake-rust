@@ -19,16 +19,19 @@ use piston_window::*;
 use std::path::Path;
 use std::sync::Arc;
 
-
 fn main() {
     let config = Arc::new(GlobalConfig::new());
     let mut window: PistonWindow = WindowSettings::new(
         "snake",
         [
             config.computed_config.board_size + config.computed_config.score_size,
-            config.computed_config.board_size
+            config.computed_config.board_size,
         ],
-    ).exit_on_esc(true).resizable(false).build().unwrap();
+    )
+    .exit_on_esc(true)
+    .resizable(false)
+    .build()
+    .unwrap();
 
     let board = Board::new(
         config.clone(),
@@ -40,22 +43,36 @@ fn main() {
 
     let mut board_view = BoardView::new(
         config.clone(),
-        window.load_font(Path::new("./assets/lcd-solid.ttf")).unwrap(),
+        window
+            .load_font(Path::new("./assets/lcd-solid.ttf"))
+            .unwrap(),
     );
 
-    let mut frame_delta = 0.0;
     while let Some(event) = &window.next() {
         board_controller.event(event);
 
-        if let Some(args) = event.render_args() {
-            frame_delta += args.ext_dt;
-            if frame_delta < 1.0 / &config.computed_config.fps {
-                continue;
-            }
+        if event.update_args().is_some() {
+            window.set_title(
+                if board_controller.won {
+                    "Snake - board complete! R to restart"
+                } else if board_controller.paused {
+                    "Snake - paused (Space to resume)"
+                } else {
+                    "Snake - arrows to move | Space to pause | R to restart"
+                }
+                .into(),
+            );
+        }
 
+        if let Some(args) = event.render_args() {
+            // Piston already schedules render events at the window's frame rate.
+            // Avoid a second timer here, which can skip alternating frames.
             window.draw_2d(event, |context, graphics, device| {
                 board_view.draw(&mut board_controller, &context, graphics, device, &args)
             });
         }
     }
 }
+
+#[cfg(test)]
+mod tests;
