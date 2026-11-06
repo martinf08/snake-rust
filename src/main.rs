@@ -48,7 +48,6 @@ fn main() {
             .unwrap(),
     );
 
-    let mut frame_delta = 0.0;
     while let Some(event) = &window.next() {
         board_controller.event(event);
 
@@ -66,12 +65,8 @@ fn main() {
         }
 
         if let Some(args) = event.render_args() {
-            frame_delta += args.ext_dt;
-            if frame_delta < 1.0 / config.computed_config.fps {
-                continue;
-            }
-            frame_delta %= 1.0 / config.computed_config.fps;
-
+            // Piston already schedules render events at the window's frame rate.
+            // Avoid a second timer here, which can skip alternating frames.
             window.draw_2d(event, |context, graphics, device| {
                 board_view.draw(&mut board_controller, &context, graphics, device, &args)
             });
