@@ -176,15 +176,12 @@ impl Snake {
     }
 
     pub fn overlap_tail(&self, x: &f64, y: &f64) -> bool {
-        for (index, point) in self.body.iter().enumerate() {
-            if index > ((1.0 / self.frame_handler.get_move_distance()) / 2.0).ceil() as usize
-                && (point.x, point.y) == (*x, *y)
-            {
-                return true;
-            }
-        }
-
-        false
+        // The first point is the head itself; every other segment must count,
+        // including nearby segments after a portal makes the body discontinuous.
+        self.body
+            .iter()
+            .skip(1)
+            .any(|point| (point.x, point.y) == (*x, *y))
     }
 
     pub fn update(&mut self, _delta_time: f64) {

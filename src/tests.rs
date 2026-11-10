@@ -159,6 +159,19 @@ fn fluid_wall_does_not_disable_self_collision_at_board_edge() {
 }
 
 #[test]
+fn self_collision_is_detected_close_to_the_head() {
+    let mut game = controller("default", "fluid", 20);
+    game.board.snake.body.clear();
+    game.board.snake.body.extend([
+        Point { x: 5.0, y: 5.0 },
+        Point { x: 4.8, y: 5.0 },
+        Point { x: 5.0, y: 5.0 },
+    ]);
+
+    assert!(game.board.snake.is_dead(&400.0, &20.0));
+}
+
+#[test]
 fn teleport_keeps_snake_length() {
     let mut game = controller("portal", "fluid", 20);
     let mut portal = game.board.portal.clone().unwrap();
@@ -167,6 +180,37 @@ fn teleport_keeps_snake_length() {
     game.board.snake.teleport(portal);
     game.board.snake.update(1.0 / 60.0);
     assert_eq!(game.board.snake.body.len(), length);
+}
+
+#[test]
+fn portal_exit_checks_collision_with_near_head_body_segments() {
+    let mut game = controller("portal", "fluid", 20);
+    game.board.snake.body.clear();
+    game.board.snake.body.extend([
+        Point { x: 5.0, y: 5.0 },
+        Point { x: 4.8, y: 5.0 },
+        Point { x: 12.0, y: 12.0 },
+        Point { x: 11.0, y: 12.0 },
+    ]);
+    game.board.snake.teleport(Portal {
+        gates: vec![
+            Gate {
+                x: 0.0,
+                y: 0.0,
+                used: true,
+            },
+            Gate {
+                x: 12.0,
+                y: 12.0,
+                used: false,
+            },
+        ],
+    });
+
+    game.board.snake.update(1.0 / 60.0);
+
+    assert_eq!(game.board.snake.head_position(), (12.0, 12.0));
+    assert!(game.board.snake.is_dead(&400.0, &20.0));
 }
 
 #[test]
